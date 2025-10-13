@@ -1,0 +1,514 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Interactive Calculus Techniques Guide</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Chosen Palette: Macaron Pastel -->
+    <!-- Application Structure Plan: The SPA uses a top-level tabbed navigation to separate "Differentiation" and "Integration", focusing the user on one major topic at a time. Within each topic, an interactive "Technique Explorer" is used. This consists of a list of technique buttons (e.g., Product Rule) that, when clicked, dynamically display the corresponding formula, concept, and multiple step-by-step examples in a dedicated content area. This structure was chosen over a static, linear document to reduce initial cognitive load and create a more engaging, task-oriented learning experience where users can directly select and study the specific technique they are interested in. -->
+    <!-- Visualization & Content Choices: Report Info: Differentiation/Integration techniques and examples. -> Goal: Provide an interactive, focused learning tool with expanded examples. -> Viz/Presentation Method: Interactive content switcher (JS-powered button group and display area) to handle multiple examples per technique. Basic formulas are presented in styled cards, now rendered with MathJax for professional typesetting. -> Interaction: User clicks a technique name to instantly view its detailed explanation and all associated examples. -> Justification: This transforms a passive reference guide into an active learning tool, improving user engagement and providing more comprehensive practice. -> Library/Method: Vanilla JS for DOM manipulation and event handling, structured HTML/Tailwind CSS for layout and styling. MathJax for LaTeX rendering. CONFIRMATION: NO SVG/Mermaid used. -->
+    <!-- CONFIRMATION: NO SVG graphics used. NO Mermaid JS used. -->
+    <script>
+        window.MathJax = {
+          tex: {
+            inlineMath: [['$', '$'], ['\\(', '\\)']],
+            displayMath: [['$$', '$$'], ['\\[', '\\]']],
+          },
+          chtml: {
+            matchFontHeight: true
+          }
+        };
+    </script>
+    <script type="text/javascript" id="MathJax-script" async
+        src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml.js">
+    </script>
+    <style>
+        body {
+            font-family: 'Inter', 'Noto Sans TC', sans-serif;
+        }
+        .technique-btn {
+            transition: all 0.2s ease-in-out;
+        }
+        .technique-btn.active {
+            background-color: #4dd0e1; /* Pastel Cyan */
+            color: white;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+        }
+         .technique-btn:not(.active):hover {
+            background-color: #fce4ec; /* Light Pink */
+        }
+        .formula-card {
+             background-color: #fffbeb;
+             padding: 1.25rem;
+             border-radius: 0.5rem;
+             box-shadow: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+             border-width: 1px;
+             border-color: #fef3c7;
+             display: flex;
+             align-items: center;
+             justify-content: center;
+             text-align: center;
+             color: #1c1917;
+             font-size: 1.125rem;
+             line-height: 1.75rem;
+             transition-property: all;
+             transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+             transition-duration: 200ms;
+             cursor: default;
+        }
+        .formula-card:hover {
+            box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+            transform: scale(1.05);
+        }
+    </style>
+</head>
+<body class="bg-rose-50 text-stone-800">
+
+    <div class="container mx-auto max-w-6xl p-4 sm:p-8">
+
+        <div class="mb-6 opacity-80 flex justify-between items-baseline">
+            <h2 class="text-2xl font-bold text-blue-600">Engineering Mathematics</h2>
+            <p class="text-lg text-stone-700">Instructor: Prof. Wu Wen-Chuan</p>
+        </div>
+        
+        <header class="text-center mb-8">
+            <h1 class="text-5xl md:text-6xl font-bold text-rose-800">Summary of Common Calculus Techniques</h1>
+            <p class="mt-4 text-xl text-stone-600">Differentiation and integration are the foundation of engineering mathematics. This guide provides an interactive learning experience to help you quickly master the core techniques.</p>
+        </header>
+
+        <nav class="flex justify-center space-x-2">
+            <button id="diff-tab" class="px-8 py-3 font-semibold text-xl rounded-t-lg transition-all duration-200">Differentiation</button>
+            <button id="int-tab" class="px-8 py-3 font-semibold text-xl rounded-t-lg transition-all duration-200">Integration</button>
+        </nav>
+
+        <main id="content-area" class="bg-white rounded-b-xl md:rounded-tr-xl shadow-lg p-6 sm:p-8 border border-rose-100">
+
+            <!-- Differentiation Content -->
+            <section id="differentiation-content">
+                <div class="bg-rose-100 p-6 rounded-xl border border-rose-200 mb-8">
+                    <h2 class="text-3xl font-bold text-rose-700 mb-2">Part 1: Differentiation</h2>
+                    <p class="text-stone-600 text-lg">The core of differentiation is finding the 'derivative' of a function, which represents the instantaneous rate of change or the slope of the tangent line at a specific point. It is an indispensable tool for analyzing the dynamic behavior of systems.</p>
+                </div>
+
+                <h3 class="text-2xl font-semibold text-stone-800 mb-4">Basic Differentiation Formulas</h3>
+                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mb-10">
+                    <div class="formula-card">$$\frac{d}{dx}(x^n) = nx^{n-1}$$</div>
+                    <div class="formula-card">$$\frac{d}{dx}(\sin x) = \cos x$$</div>
+                    <div class="formula-card">$$\frac{d}{dx}(\cos x) = -\sin x$$</div>
+                    <div class="formula-card">$$\frac{d}{dx}(\tan x) = \sec^2 x$$</div>
+                    <div class="formula-card">$$\frac{d}{dx}(e^x) = e^x$$</div>
+                    <div class="formula-card">$$\frac{d}{dx}(\ln x) = \frac{1}{x}$$</div>
+                </div>
+
+                <h3 class="text-2xl font-semibold text-stone-800 mb-4">Interactive Learning of Differentiation Techniques</h3>
+                <div class="md:flex md:space-x-8">
+                    <div id="diff-buttons" class="md:w-1/4 flex flex-row md:flex-col flex-wrap justify-center md:justify-start mb-6 md:mb-0">
+                    </div>
+                    <div class="md:w-3/4 bg-rose-100 p-6 rounded-xl shadow-inner border border-rose-200 min-h-[300px]">
+                        <div id="diff-technique-display"></div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Integration Content -->
+            <section id="integration-content" class="hidden">
+                 <div class="bg-cyan-50 p-6 rounded-xl border border-cyan-200 mb-8">
+                    <h2 class="text-3xl font-bold text-cyan-800 mb-2">Part 2: Integration</h2>
+                    <p class="text-stone-600 text-lg">Integration can be seen as the inverse operation of differentiation, mainly used to calculate the 'total accumulation' during a process of change, such as the area under a curve, the volume of an object, or the total displacement over time.</p>
+                </div>
+
+                <h3 class="text-2xl font-semibold text-stone-800 mb-4">Basic Integration Formulas</h3>
+                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mb-10">
+                    <div class="formula-card">$$\int x^n \,dx = \frac{x^{n+1}}{n+1} + C$$</div>
+                    <div class="formula-card">$$\int \cos x \,dx = \sin x + C$$</div>
+                    <div class="formula-card">$$\int \sin x \,dx = -\cos x + C$$</div>
+                    <div class="formula-card">$$\int e^x \,dx = e^x + C$$</div>
+                    <div class="formula-card">$$\int \frac{1}{x} \,dx = \ln|x| + C$$</div>
+                </div>
+                
+                <h3 class="text-2xl font-semibold text-stone-800 mb-4">Interactive Learning of Integration Techniques</h3>
+                 <div class="md:flex md:space-x-8">
+                    <div id="int-buttons" class="md:w-1/4 flex flex-row md:flex-col flex-wrap justify-center md:justify-start mb-6 md:mb-0">
+                    </div>
+                    <div class="md:w-3/4 bg-cyan-50 p-6 rounded-xl shadow-inner border border-cyan-200 min-h-[300px]">
+                        <div id="int-technique-display"></div>
+                    </div>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <script>
+        const CalculusApp = {
+            data: {
+                differentiation: {
+                    productRule: {
+                        name: 'Product Rule',
+                        description: 'Used to calculate the derivative of the product of two functions.',
+                        formula: '$$\\frac{d}{dx} [f(x)g(x)] = f\'(x)g(x) + f(x)g\'(x)$$',
+                        examples: [
+                            {
+                                question: 'Find the derivative of $y = x^2 \\sin x$.',
+                                steps: [
+                                    '$\\text{Let } f(x) = x^2, g(x) = \\sin x$',
+                                    '$\\text{Then } f\'(x) = 2x, g\'(x) = \\cos x$',
+                                    '$\\text{Substitute into the formula: } y\' = (2x)(\\sin x) + (x^2)(\\cos x)$',
+                                    '<strong>Answer: $y\' = 2x \\sin x + x^2 \\cos x$</strong>'
+                                ]
+                            },
+                            {
+                                question: 'Find the derivative of $y = e^x \\cos x$.',
+                                steps: [
+                                    '$\\text{Let } f(x) = e^x, g(x) = \\cos x$',
+                                    '$\\text{Then } f\'(x) = e^x, g\'(x) = -\\sin x$',
+                                    '$\\text{Substitute into the formula: } y\' = (e^x)(\\cos x) + (e^x)(-\\sin x)$',
+                                    '<strong>Answer: $y\' = e^x(\\cos x - \\sin x)$</strong>'
+                                ]
+                            },
+                            {
+                                question: 'Find the derivative of $y = (x^3 + 2x) \\ln x$.',
+                                steps: [
+                                    '$\\text{Let } f(x) = x^3 + 2x, g(x) = \\ln x$',
+                                    '$\\text{Then } f\'(x) = 3x^2 + 2, g\'(x) = 1/x$',
+                                    '$\\text{Substitute into the formula: } y\' = (3x^2 + 2)(\\ln x) + (x^3 + 2x)(\\frac{1}{x})$',
+                                    '$\\text{Simplify: } y\' = (3x^2 + 2)\\ln x + x^2 + 2$',
+                                    '<strong>Answer: $y\' = (3x^2 + 2)\\ln x + x^2 + 2$</strong>'
+                                ]
+                            }
+                        ]
+                    },
+                    quotientRule: {
+                        name: 'Quotient Rule',
+                        description: 'Used to calculate the derivative of the quotient of two functions.',
+                        formula: '$$\\frac{d}{dx} \\left[ \\frac{f(x)}{g(x)} \\right] = \\frac{f\'(x)g(x) - f(x)g\'(x)}{[g(x)]^2}$$',
+                        examples: [
+                            {
+                                question: 'Find the derivative of $y = \\frac{e^x}{x^3}$.',
+                                steps: [
+                                    '$\\text{Let } f(x) = e^x, g(x) = x^3$',
+                                    '$\\text{Then } f\'(x) = e^x, g\'(x) = 3x^2$',
+                                    '$\\text{Substitute into the formula: } y\' = \\frac{(e^x)(x^3) - (e^x)(3x^2)}{(x^3)^2}$',
+                                    '<strong>Answer: $y\' = \\frac{e^x(x - 3)}{x^4}$</strong>'
+                                ]
+                            },
+                             {
+                                question: 'Find the derivative of $y = \\frac{\\sin x}{x}$.',
+                                steps: [
+                                    '$\\text{Let } f(x) = \\sin x, g(x) = x$',
+                                    '$\\text{Then } f\'(x) = \\cos x, g\'(x) = 1$',
+                                    '$\\text{Substitute into the formula: } y\' = \\frac{(\\cos x)(x) - (\\sin x)(1)}{x^2}$',
+                                    '<strong>Answer: $y\' = \\frac{x \\cos x - \\sin x}{x^2}$</strong>'
+                                ]
+                            },
+                            {
+                                question: 'Find the derivative of $y = \\frac{\\ln x}{x^2}$.',
+                                steps: [
+                                    '$\\text{Let } f(x) = \\ln x, g(x) = x^2$',
+                                    '$\\text{Then } f\'(x) = \\frac{1}{x}, g\'(x) = 2x$',
+                                    '$\\text{Substitute into the formula: } y\' = \\frac{(\\frac{1}{x})(x^2) - (\\ln x)(2x)}{(x^2)^2}$',
+                                    '$\\text{Simplify: } y\' = \\frac{x - 2x \\ln x}{x^4}$',
+                                    '<strong>Answer: $y\' = \\frac{1 - 2 \\ln x}{x^3}$</strong>'
+                                ]
+                            }
+                        ]
+                    },
+                    chainRule: {
+                        name: 'Chain Rule',
+                        description: 'Used to calculate the derivative of a composite function (a function nested within another function).',
+                        formula: '$$\\text{If } y = f(g(x)), \\text{ then } \\frac{dy}{dx} = f\'(g(x)) \\cdot g\'(x)$$',
+                        examples: [
+                            {
+                                question: 'Find the derivative of $y = \\cos(x^2 + 1)$.',
+                                steps: [
+                                    '$\\text{Outer function } f(u) = \\cos u, \\text{ Inner function } g(x) = x^2 + 1$',
+                                    '$\\text{Derivative of outer: } f\'(g(x)) = -\\sin(x^2 + 1)$',
+                                    '$\\text{Derivative of inner: } g\'(x) = 2x$',
+                                    '<strong>Answer: $y\' = -2x \\sin(x^2 + 1)$</strong>'
+                                ]
+                            },
+                            {
+                                question: 'Find the derivative of $y = (3x^2 - 5)^4$.',
+                                steps: [
+                                    '$\\text{Outer function } f(u) = u^4, \\text{ Inner function } g(x) = 3x^2 - 5$',
+                                    '$\\text{Derivative of outer: } f\'(g(x)) = 4(3x^2 - 5)^3$',
+                                    '$\\text{Derivative of inner: } g\'(x) = 6x$',
+                                    '$\\text{Multiply: } y\' = 4(3x^2 - 5)^3 \\cdot (6x)$',
+                                    '<strong>Answer: $y\' = 24x(3x^2 - 5)^3$</strong>'
+                                ]
+                            },
+                             {
+                                question: 'Find the derivative of $y = e^{\\sin x}$.',
+                                steps: [
+                                    '$\\text{Outer function } f(u) = e^u, \\text{ Inner function } g(x) = \\sin x$',
+                                    '$\\text{Derivative of outer: } f\'(g(x)) = e^{\\sin x}$',
+                                    '$\\text{Derivative of inner: } g\'(x) = \\cos x$',
+                                    '<strong>Answer: $y\' = \\cos x \\cdot e^{\\sin x}$</strong>'
+                                ]
+                            }
+                        ]
+                    }
+                },
+                integration: {
+                    uSubstitution: {
+                        name: 'u-Substitution',
+                        description: 'Simplifies an integral by changing the variable to a new variable u, transforming it into a basic integral form.',
+                        formula: '$$\\text{Choose a suitable } u = g(x), \\text{ then } du = g\'(x) dx$$',
+                        examples: [
+                            {
+                                question: 'Calculate $\\int 2x \\sqrt{x^2 + 1} \\,dx$.',
+                                steps: [
+                                    '$\\text{Let } u = x^2 + 1, \\text{ then } du = 2x \\,dx$',
+                                    '$\\text{Substitute: } \\int \\sqrt{u} \\,du = \\int u^{1/2} \\,du$',
+                                    '$\\text{Integrate: } \\frac{2}{3}u^{3/2} + C$',
+                                    '<strong>Answer: $\\frac{2}{3}(x^2 + 1)^{3/2} + C$</strong>'
+                                ]
+                            },
+                             {
+                                question: 'Calculate $\\int \\cos x \\cdot \\sin^3 x \\,dx$.',
+                                steps: [
+                                    '$\\text{Let } u = \\sin x, \\text{ then } du = \\cos x \\,dx$',
+                                    '$\\text{Substitute: } \\int u^3 \\,du$',
+                                    '$\\text{Integrate: } \\frac{u^4}{4} + C$',
+                                    '<strong>Answer: $\\frac{\\sin^4 x}{4} + C$</strong>'
+                                ]
+                            },
+                             {
+                                question: 'Calculate $\\int \\frac{x^2}{x^3 + 1} \\,dx$.',
+                                steps: [
+                                    '$\\text{Let } u = x^3 + 1, \\text{ then } du = 3x^2 \\,dx, \\text{ or } \\frac{1}{3}du = x^2 \\,dx$',
+                                    '$\\text{Substitute: } \\int \\frac{1}{u} \\cdot \\frac{1}{3}du = \\frac{1}{3}\\int \\frac{1}{u}du$',
+                                    '$\\text{Integrate: } \\frac{1}{3}\\ln|u| + C$',
+                                    '<strong>Answer: $\\frac{1}{3}\\ln|x^3 + 1| + C$</strong>'
+                                ]
+                            }
+                        ]
+                    },
+                    byParts: {
+                        name: 'Integration by Parts',
+                        description: 'Used for integrating the product of two different types of functions, based on the product rule for differentiation.',
+                        formula: '$$\\int u \\,dv = uv - \\int v \\,du$$',
+                        examples: [
+                            {
+                                question: 'Calculate $\\int x e^x \\,dx$.',
+                                steps: [
+                                    '$\\text{Following the LIATE rule, let } u = x, dv = e^x \\,dx$',
+                                    '$\\text{Then } du = dx, v = \\int e^x \\,dx = e^x$',
+                                    '$\\text{Substitute into the formula: } x e^x - \\int e^x \\,dx$',
+                                    '<strong>Answer: $x e^x - e^x + C$</strong>'
+                                ]
+                            },
+                             {
+                                question: 'Calculate $\\int \\ln x \\,dx$.',
+                                steps: [
+                                    '$\\text{Following the LIATE rule, let } u = \\ln x, dv = 1 \\,dx$',
+                                    '$\\text{Then } du = \\frac{1}{x} \\,dx, v = x$',
+                                    '$\\text{Substitute into the formula: } (\\ln x)(x) - \\int x (\\frac{1}{x}) \\,dx = x \\ln x - \\int 1 \\,dx$',
+                                    '<strong>Answer: $x \\ln x - x + C$</strong>'
+                                ]
+                            },
+                            {
+                                question: 'Calculate $\\int x^2 \\sin x \\,dx$.',
+                                steps: [
+                                    '$\\text{First integration by parts: Let } u = x^2, dv = \\sin x \\,dx$',
+                                    '$\\text{Then } du = 2x \\,dx, v = -\\cos x$',
+                                    '$\\text{Result: } -x^2\\cos x - \\int (-\\cos x)(2x \\,dx) = -x^2\\cos x + 2\\int x \\cos x \\,dx$',
+                                    '$\\text{Second integration by parts (for } \\int x \\cos x \\,dx\\text{): Let } u = x, dv = \\cos x \\,dx$',
+                                    '$\\text{Then } du = dx, v = \\sin x$',
+                                    '$\\text{Result: } x \\sin x - \\int \\sin x \\,dx = x \\sin x - (-\\cos x) = x \\sin x + \\cos x$',
+                                    '$\\text{Combine results: } -x^2\\cos x + 2(x \\sin x + \\cos x) + C$',
+                                    '<strong>Answer: $-x^2\\cos x + 2x \\sin x + 2\\cos x + C$</strong>'
+                                ]
+                            }
+                        ]
+                    },
+                    partialFractions: {
+                        name: 'Partial Fractions',
+                        description: 'Decomposes a rational function (a polynomial divided by a polynomial) into a sum of simpler fractions that are easier to integrate individually.',
+                        formula: '$$\\text{Decompose } \\frac{P(x)}{Q(x)} \\text{ into the form } \\frac{A}{ax+b} + \\frac{B}{cx+d} ...$$',
+                        examples: [
+                            {
+                                question: 'Calculate $\\int \\frac{5x - 3}{x^2 - 2x - 3} \\,dx$.',
+                                steps: [
+                                    '$\\text{Factor the denominator: } \\frac{5x - 3}{(x - 3)(x + 1)} = \\frac{A}{x - 3} + \\frac{B}{x + 1}$',
+                                    '$\\text{Solve for A and B: } A = 3, B = 2 \\text{. The expression becomes: } \\frac{3}{x - 3} + \\frac{2}{x + 1}$',
+                                    '$\\text{The integral is = } \\int \\frac{3}{x - 3} \\,dx + \\int \\frac{2}{x + 1} \\,dx$',
+                                    '<strong>Answer: $3 \\ln|x - 3| + 2 \\ln|x + 1| + C$</strong>'
+                                ]
+                            },
+                            {
+                                question: 'Calculate $\\int \\frac{1}{x^2 - 4} \\,dx$.',
+                                steps: [
+                                    '$\\text{Factor the denominator: } \\frac{1}{(x - 2)(x + 2)} = \\frac{A}{x - 2} + \\frac{B}{x + 2}$',
+                                    '$\\text{Solve for A and B: } A = 1/4, B = -1/4$',
+                                    '$\\text{The integral is = } \\frac{1}{4}\\int \\frac{1}{x-2} \\,dx - \\frac{1}{4}\\int \\frac{1}{x+2} \\,dx$',
+                                    '<strong>Answer: $\\frac{1}{4}\\ln|x - 2| - \\frac{1}{4}\\ln|x + 2| + C$</strong>'
+                                ]
+                            },
+                            {
+                                question: 'Calculate $\\int \\frac{x + 1}{x(x - 2)} \\,dx$.',
+                                steps: [
+                                    '$\\text{Factor the denominator: } \\frac{x + 1}{x(x - 2)} = \\frac{A}{x} + \\frac{B}{x-2}$',
+                                    '$\\text{Solve for A and B: } A = -1/2, B = 3/2$',
+                                    '$\\text{The integral is = } \\int \\frac{-1/2}{x} \\,dx + \\int \\frac{3/2}{x-2} \\,dx$',
+                                    '<strong>Answer: $-\\frac{1}{2}\\ln|x| + \\frac{3}{2}\\ln|x - 2| + C$</strong>'
+                                ]
+                            }
+                        ]
+                    }
+                }
+            },
+
+            state: {
+                currentView: 'differentiation',
+            },
+
+            elements: {},
+
+            init() {
+                this.cacheDom();
+                this.bindEvents();
+                this.render();
+            },
+
+            cacheDom() {
+                this.elements.diffTab = document.getElementById('diff-tab');
+                this.elements.intTab = document.getElementById('int-tab');
+                this.elements.diffContent = document.getElementById('differentiation-content');
+                this.elements.intContent = document.getElementById('integration-content');
+                this.elements.diffButtonsContainer = document.getElementById('diff-buttons');
+                this.elements.diffDisplay = document.getElementById('diff-technique-display');
+                this.elements.intButtonsContainer = document.getElementById('int-buttons');
+                this.elements.intDisplay = document.getElementById('int-technique-display');
+            },
+
+            bindEvents() {
+                this.elements.diffTab.addEventListener('click', () => this.switchView('differentiation'));
+                this.elements.intTab.addEventListener('click', () => this.switchView('integration'));
+                
+                this.elements.diffButtonsContainer.addEventListener('click', (e) => this.handleTechniqueClick(e, 'differentiation'));
+                this.elements.intButtonsContainer.addEventListener('click', (e) => this.handleTechniqueClick(e, 'integration'));
+            },
+            
+            switchView(view) {
+                this.state.currentView = view;
+                this.render();
+            },
+
+            handleTechniqueClick(event, view) {
+                const button = event.target.closest('.technique-btn');
+                if (!button) return;
+
+                const key = button.dataset.key;
+                const technique = this.data[view][key];
+                
+                this.updateActiveButton(button);
+                this.displayTechnique(technique);
+            },
+
+            displayTechnique(technique) {
+                const displayElement = this.state.currentView === 'differentiation' ? this.elements.diffDisplay : this.elements.intDisplay;
+                
+                const examplesHtml = technique.examples.map((ex, index) => {
+                    const view = this.state.currentView;
+                    const borderColor = view === 'differentiation' ? 'border-rose-200' : 'border-cyan-200';
+                    const stepHeaderColor = view === 'differentiation' ? 'text-rose-600' : 'text-cyan-700';
+
+                    const stepsArray = ex.steps;
+                    const answerStep = stepsArray[stepsArray.length - 1];
+                    const calculationSteps = stepsArray.slice(0, stepsArray.length - 1);
+
+                    let stepCounter = 0;
+                    const stepsHtml = calculationSteps.map(step => {
+                        stepCounter++;
+                        return `
+                            <div class="bg-white rounded-lg p-4 mb-3 border ${borderColor}">
+                                <div class="flex items-start">
+                                    <span class="font-semibold ${stepHeaderColor} whitespace-nowrap mr-4">Step ${stepCounter}</span>
+                                    <div class="flex-grow">${step}</div>
+                                </div>
+                            </div>
+                        `;
+                    }).join('');
+                    
+                    const answerHtml = `<div class="bg-white rounded-lg p-4 mt-4 border-2 border-dashed ${borderColor}">${answerStep}</div>`;
+                    
+                    const borderClass = index > 0 ? `mt-6 pt-6 border-t ${borderColor}` : '';
+                    
+                    return `
+                        <div class="${borderClass}">
+                             <div class="mb-4">
+                                <span class="font-semibold text-xl text-stone-800 mr-2">Example ${index + 1} :</span>
+                                <span class="text-stone-700 text-lg">${ex.question}</span>
+                            </div>
+                            <div>${stepsHtml}</div>
+                            ${answerHtml}
+                        </div>
+                    `;
+                }).join('');
+
+                const mainHeaderColor = this.state.currentView === 'differentiation' ? 'text-rose-700' : 'text-cyan-800';
+                displayElement.innerHTML = `
+                    <h4 class="text-3xl font-bold ${mainHeaderColor} mb-2">${technique.name}</h4>
+                    <p class="text-stone-600 mb-4 text-lg">${technique.description}</p>
+                    <div class="bg-white p-3 rounded-md mb-6 text-center text-stone-800 border text-lg">${technique.formula}</div>
+                    ${examplesHtml}
+                `;
+                
+                if (window.MathJax && window.MathJax.typeset) {
+                    window.MathJax.typeset([displayElement]);
+                }
+            },
+            
+            updateActiveButton(activeButton) {
+                const container = activeButton.parentElement;
+                container.querySelectorAll('.technique-btn').forEach(btn => btn.classList.remove('active'));
+                activeButton.classList.add('active');
+            },
+
+            render() {
+                const isDiff = this.state.currentView === 'differentiation';
+
+                this.elements.diffContent.classList.toggle('hidden', !isDiff);
+                this.elements.intContent.classList.toggle('hidden', isDiff);
+                
+                if(isDiff){
+                    this.elements.diffTab.className = "px-8 py-3 font-semibold text-xl rounded-t-lg transition-all duration-200 bg-white text-rose-600";
+                    this.elements.intTab.className = "px-8 py-3 font-semibold text-xl rounded-t-lg transition-all duration-200 bg-cyan-100 text-cyan-600 hover:bg-cyan-200";
+                } else {
+                    this.elements.diffTab.className = "px-8 py-3 font-semibold text-xl rounded-t-lg transition-all duration-200 bg-rose-100 text-rose-600 hover:bg-rose-200";
+                    this.elements.intTab.className = "px-8 py-3 font-semibold text-xl rounded-t-lg transition-all duration-200 bg-white text-cyan-600";
+                }
+
+                this.renderTechniqueButtons();
+            },
+
+            renderTechniqueButtons() {
+                const view = this.state.currentView;
+                const container = view === 'differentiation' ? this.elements.diffButtonsContainer : this.elements.intButtonsContainer;
+                const currentData = this.data[view];
+                
+                container.innerHTML = '';
+                
+                Object.keys(currentData).forEach(key => {
+                    const technique = currentData[key];
+                    const button = document.createElement('button');
+                    button.textContent = technique.name;
+                    button.className = `technique-btn w-full text-left p-3 my-1 rounded-md border border-stone-300 bg-white text-lg`;
+                    button.dataset.key = key;
+                    container.appendChild(button);
+                });
+
+                if (container.firstChild) {
+                    container.firstChild.click();
+                }
+            }
+        };
+
+        document.addEventListener('DOMContentLoaded', () => {
+             CalculusApp.init();
+        });
+    </script>
+</body>
+</html>

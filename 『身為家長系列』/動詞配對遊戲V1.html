@@ -1,0 +1,598 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>動詞時態配對遊戲 v2</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;700&display=swap');
+
+        body {
+            font-family: 'Noto Sans TC', sans-serif;
+            background-color: #eef5ff;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            padding: 20px 0;
+            user-select: none;
+        }
+
+        #game-container {
+            width: 900px;
+            max-width: 95%;
+            background: #ffffff;
+            border-radius: 20px;
+            box-shadow: 0 8px 30px rgba(0, 0, 0, 0.12);
+            padding: 25px 35px;
+            text-align: center;
+        }
+
+        h1 {
+            color: #1a535c;
+            margin-bottom: 5px;
+        }
+        
+        #instructions {
+            color: #495057;
+            margin-bottom: 20px;
+        }
+
+        #game-info {
+            display: flex;
+            justify-content: space-around;
+            align-items: center;
+            padding: 15px;
+            background-color: #f8f9fa;
+            border-radius: 12px;
+            margin-bottom: 20px;
+            border: 1px solid #dee2e6;
+        }
+
+        #game-info span {
+            font-size: 1.25em;
+            color: #4a4a4a;
+            font-weight: 700;
+        }
+        #game-info #high-score {
+            color: #ff6b6b;
+        }
+
+        .button-container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        #start-button {
+            padding: 12px 25px;
+            font-size: 1.1em;
+            font-weight: 700;
+            cursor: pointer;
+            border: none;
+            background: linear-gradient(45deg, #4ecdc4, #556270);
+            color: white;
+            border-radius: 50px;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+        }
+        #start-button:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.25);
+        }
+        #start-button:disabled {
+            background: #ced4da;
+            cursor: not-allowed;
+        }
+
+        #rules-button {
+            padding: 12px 25px;
+            font-size: 1.1em;
+            font-weight: 700;
+            cursor: pointer;
+            border: 2px solid #4ecdc4;
+            background: #fff;
+            color: #4ecdc4;
+            border-radius: 50px;
+            transition: all 0.3s ease;
+        }
+
+        #rules-button:hover {
+            background: #4ecdc4;
+            color: #fff;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 15px rgba(78, 205, 196, 0.4);
+        }
+
+        #word-bank {
+            min-height: 120px;
+            padding: 15px;
+            border: 2px dashed #adb5bd;
+            border-radius: 12px;
+            margin-bottom: 25px;
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .word-card {
+            padding: 10px 20px;
+            background: #264653;
+            color: white;
+            border-radius: 8px;
+            cursor: grab;
+            font-weight: bold;
+            box-shadow: 0 3px 6px rgba(0,0,0,0.16);
+            transition: all 0.2s ease-in-out;
+        }
+
+        .word-card.dragging {
+            opacity: 0.4;
+            transform: scale(1.08);
+        }
+
+        #drop-zones-container {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+
+        .drop-zone {
+            min-height: 250px;
+            padding: 20px;
+            border-radius: 12px;
+            transition: background-color 0.3s, border-color 0.3s;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        
+        #present-zone {
+            background-color: rgba(42, 157, 143, 0.1);
+            border: 2px solid rgba(42, 157, 143, 0.4);
+        }
+        #past-zone {
+            background-color: rgba(231, 111, 81, 0.1);
+            border: 2px solid rgba(231, 111, 81, 0.4);
+        }
+        
+        .drop-zone h2 {
+            margin-top: 0;
+            color: #343a40;
+        }
+        .drop-zone .placed-words {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            justify-content: center;
+            margin-top: 10px;
+        }
+        
+        .drop-zone.drag-over {
+            transform: scale(1.02);
+        }
+        #present-zone.drag-over { background-color: rgba(42, 157, 143, 0.2); }
+        #past-zone.drag-over { background-color: rgba(231, 111, 81, 0.2); }
+        
+        @keyframes flash-green {
+            50% { background-color: #d4edda; }
+        }
+        @keyframes flash-red {
+            50% { background-color: #f8d7da; }
+        }
+        .drop-zone.correct { animation: flash-green 0.4s; }
+        .drop-zone.incorrect { animation: flash-red 0.4s; }
+
+        /* 遊戲結束 Modal */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.6);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.3s ease, visibility 0.3s ease;
+        }
+        .modal-overlay.show {
+            opacity: 1;
+            visibility: visible;
+        }
+        .modal-content {
+            background: white;
+            padding: 30px 40px;
+            border-radius: 15px;
+            text-align: center;
+            box-shadow: 0 5px 25px rgba(0,0,0,0.2);
+            transform: scale(0.9);
+            transition: transform 0.3s ease;
+        }
+        .modal-overlay.show .modal-content {
+            transform: scale(1);
+        }
+        .modal-content h2 {
+            color: #1a535c;
+            margin-bottom: 15px;
+        }
+        .modal-content p {
+            font-size: 1.2em;
+            margin: 10px 0;
+        }
+        #new-high-score-msg {
+            color: #e63946;
+            font-weight: bold;
+        }
+        #restart-button {
+             padding: 12px 25px;
+            font-size: 1.1em;
+            cursor: pointer;
+            border: none;
+            background: #fca311;
+            color: white;
+            border-radius: 50px;
+            transition: background-color 0.3s;
+            margin-top: 20px;
+        }
+        #restart-button:hover {
+            background: #e85d04;
+        }
+
+        .rules-list {
+            text-align: left;
+            padding-left: 0;
+            list-style-position: inside;
+            list-style-type: '✔ ';
+        }
+        .rules-list li {
+            margin-bottom: 15px;
+            line-height: 1.6;
+        }
+        .rules-list ul {
+            padding-left: 25px;
+            margin-top: 8px;
+            list-style-type: '▸ ';
+        }
+        .rules-list ul li {
+            margin-bottom: 8px;
+        }
+        .correct-text { color: #2a9d8f; font-weight: bold; }
+        .incorrect-text { color: #e76f51; font-weight: bold; }
+
+        #close-rules-button {
+            padding: 12px 25px;
+            font-size: 1.1em;
+            cursor: pointer;
+            border: none;
+            background: #264653;
+            color: white;
+            border-radius: 50px;
+            transition: background-color 0.3s;
+            margin-top: 20px;
+        }
+        #close-rules-button:hover {
+            background: #1a535c;
+        }
+
+    </style>
+</head>
+<body>
+
+    <div id="game-container">
+        <h1>動詞時態配對遊戲 ✨</h1>
+        <p id="instructions">將單字拖曳到對應的「現在式」或「過去式」方塊中。</p>
+        
+        <div id="game-info">
+            <span id="score">分數：0</span>
+            <span id="high-score">最高分：0</span>
+            <span id="timer">時間：0 秒</span>
+        </div>
+
+        <div class="button-container">
+            <button id="start-button">開始遊戲</button>
+            <button id="rules-button">遊戲規則</button>
+        </div>
+
+        <h3>單字庫</h3>
+        <div id="word-bank"></div>
+        
+        <div id="drop-zones-container">
+            <div id="present-zone" class="drop-zone" data-tense="present">
+                <h2>現在式 (Present)</h2>
+                <div class="placed-words"></div>
+            </div>
+            <div id="past-zone" class="drop-zone" data-tense="past">
+                <h2>過去式 (Past)</h2>
+                <div class="placed-words"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 遊戲結束 Modal -->
+    <div id="game-over-modal" class="modal-overlay">
+        <div class="modal-content">
+            <h2>遊戲結束！</h2>
+            <p id="final-score"></p>
+            <p id="final-time"></p>
+            <p id="new-high-score-msg" style="display: none;">🎉 恭喜打破紀錄！ 🎉</p>
+            <button id="restart-button">再玩一次</button>
+        </div>
+    </div>
+
+    <!-- 遊戲規則 Modal -->
+    <div id="rules-modal" class="modal-overlay">
+        <div class="modal-content">
+            <h2>遊戲規則</h2>
+            <ul class="rules-list">
+                <li><strong>目標：</strong>將「單字庫」的所有動詞，拖曳到正確的「現在式」或「過去式」方塊中。</li>
+                <li><strong>計分：</strong>
+                    <ul>
+                        <li>拖曳正確：<span class="correct-text">+10</span> 分</li>
+                        <li>拖曳錯誤：<span class="incorrect-text">-5</span> 分 (最低為 0 分)</li>
+                    </ul>
+                </li>
+                <li><strong>結束：</strong>當所有單字都配對完成，計時器將停止，並顯示您的最終成績。</li>
+                <li><strong>挑戰：</strong>試著用更少的時間獲得更高分，打破自己的紀錄吧！</li>
+            </ul>
+            <button id="close-rules-button">我明白了</button>
+        </div>
+    </div>
+
+    <script>
+        const allVerbs = [
+            // Irregular Verbs (不規則動詞)
+            { present: 'be (am/is/are)', past: 'was/were' }, { present: 'begin', past: 'began' },
+            { present: 'break', past: 'broke' }, { present: 'bring', past: 'brought' },
+            { present: 'buy', past: 'bought' }, { present: 'build', past: 'built' },
+            { present: 'catch', past: 'caught' }, { present: 'come', past: 'came' },
+            { present: 'do', past: 'did' }, { present: 'draw', past: 'drew' },
+            { present: 'drink', past: 'drank' }, { present: 'drive', past: 'drove' },
+            { present: 'eat', past: 'ate' }, { present: 'fall', past: 'fell' },
+            { present: 'feel', past: 'felt' }, { present: 'find', past: 'found' },
+            { present: 'fly', past: 'flew' }, { present: 'forget', past: 'forgot' },
+            { present: 'get', past: 'got' }, { present: 'give', past: 'gave' },
+            { present: 'go', past: 'went' }, { present: 'have', past: 'had' },
+            { present: 'hear', past: 'heard' }, { present: 'hold', past: 'held' },
+            { present: 'hurt', past: 'hurt' }, { present: 'keep', past: 'kept' },
+            { present: 'know', past: 'knew' }, { present: 'leave', past: 'left' },
+            { present: 'let', past: 'let' }, { present: 'lose', past: 'lost' },
+            { present: 'make', past: 'made' }, { present: 'meet', past: 'met' },
+            { present: 'pay', past: 'paid' }, { present: 'put', past: 'put' },
+            { present: 'read', past: 'read' }, { present: 'ride', past: 'rode' },
+            { present: 'run', past: 'ran' }, { present: 'say', past: 'said' },
+            { present: 'see', past: 'saw' }, { present: 'sell', past: 'sold' },
+            { present: 'send', past: 'sent' }, { present: 'sing', past: 'sang' },
+            { present: 'sit', past: 'sat' }, { present: 'sleep', past: 'slept' },
+            { present: 'speak', past: 'spoke' }, { present: 'spend', past: 'spent' },
+            { present: 'stand', past: 'stood' }, { present: 'swim', past: 'swam' },
+            { present: 'take', past: 'took' }, { present: 'teach', past: 'taught' },
+            { present: 'tell', past: 'told' }, { present: 'think', past: 'thought' },
+            { present: 'throw', past: 'threw' }, { present: 'understand', past: 'understood' },
+            { present: 'wake', past: 'woke' }, { present: 'wear', past: 'wore' },
+            { present: 'win', past: 'won' }, { present: 'write', past: 'wrote' },
+
+            // Regular Verbs (規則動詞)
+            { present: 'ask', past: 'asked' }, { present: 'answer', past: 'answered' },
+            { present: 'brush', past: 'brushed' }, { present: 'call', past: 'called' },
+            { present: 'clean', past: 'cleaned' }, { present: 'close', past: 'closed' },
+            { present: 'cook', past: 'cooked' }, { present: 'count', past: 'counted' },
+            { present: 'cry', past: 'cried' }, { present: 'dance', past: 'danced' },
+            { present: 'enjoy', past: 'enjoyed' }, { present: 'finish', past: 'finished' },
+            { present: 'help', past: 'helped' }, { present: 'jump', past: 'jumped' },
+            { present: 'kick', past: 'kicked' }, { present: 'like', past: 'liked' },
+            { present: 'listen', past: 'listened' }, { present: 'live', past: 'lived' },
+            { present: 'look', past: 'looked' }, { present: 'love', past: 'loved' },
+            { present: 'need', past: 'needed' }, { present: 'open', past: 'opened' },
+            { present: 'paint', past: 'painted' }, { present: 'play', past: 'played' },
+            { present: 'rain', past: 'rained' }, { present: 'remember', past: 'remembered' },
+            { present: 'share', past: 'shared' }, { present: 'smile', past: 'smiled' },
+            { present: 'start', past: 'started' }, { present: 'stay', past: 'stayed' },
+            { present: 'stop', past: 'stopped' }, { present: 'study', past: 'studied' },
+            { present: 'talk', past: 'talked' }, { present: 'touch', past: 'touched' },
+            { present: 'try', past: 'tried' }, { present: 'use', past: 'used' },
+            { present: 'visit', past: 'visited' }, { present: 'wait', past: 'waited' },
+            { present: 'walk', past: 'walked' }, { present: 'want', past: 'wanted' },
+            { present: 'wash', past: 'washed' }, { present: 'watch', past: 'watched' }
+        ];
+
+        const wordBank = document.getElementById('word-bank');
+        const dropZones = document.querySelectorAll('.drop-zone');
+        const scoreDisplay = document.getElementById('score');
+        const timerDisplay = document.getElementById('timer');
+        const startButton = document.getElementById('start-button');
+        const highScoreDisplay = document.getElementById('high-score');
+        
+        // Modal elements
+        const gameOverModal = document.getElementById('game-over-modal');
+        const finalScoreElem = document.getElementById('final-score');
+        const finalTimeElem = document.getElementById('final-time');
+        const newHighScoreMsg = document.getElementById('new-high-score-msg');
+        const restartButton = document.getElementById('restart-button');
+        const rulesButton = document.getElementById('rules-button');
+        const rulesModal = document.getElementById('rules-modal');
+        const closeRulesButton = document.getElementById('close-rules-button');
+
+        let score = 0;
+        let timer;
+        let seconds = 0;
+        let totalWords = 0;
+        let wordsPlaced = 0;
+        let gameActive = false;
+        let highScore = 0;
+
+        // 初始化遊戲
+        function init() {
+            // 從 localStorage 讀取最高分
+            highScore = localStorage.getItem('verbGameHighScore') || 0;
+            highScoreDisplay.textContent = `最高分：${highScore}`;
+            startButton.addEventListener('click', startGame);
+            restartButton.addEventListener('click', () => {
+                gameOverModal.classList.remove('show');
+                startGame();
+            });
+
+            // 規則說明的 Modal 事件監聽
+            rulesButton.addEventListener('click', () => {
+                rulesModal.classList.add('show');
+            });
+            closeRulesButton.addEventListener('click', () => {
+                rulesModal.classList.remove('show');
+            });
+            rulesModal.addEventListener('click', (e) => {
+                // 如果點擊的是半透明背景，而非內容區塊，則關閉視窗
+                if (e.target === rulesModal) {
+                    rulesModal.classList.remove('show');
+                }
+            });
+        }
+
+        function startGame() {
+            if (gameActive) return;
+            gameActive = true;
+            
+            resetGame();
+            
+            // 隨機挑選 12 組動詞來玩
+            const gameVerbs = allVerbs.sort(() => 0.5 - Math.random()).slice(0, 12);
+            
+            let wordCards = [];
+            gameVerbs.forEach((verb, index) => {
+                wordCards.push({ word: verb.present, tense: 'present', id: `word-${index}p` });
+                wordCards.push({ word: verb.past, tense: 'past', id: `word-${index}a` });
+            });
+
+            totalWords = wordCards.length;
+            wordCards.sort(() => Math.random() - 0.5);
+
+            wordCards.forEach(cardInfo => {
+                const card = document.createElement('div');
+                card.id = cardInfo.id;
+                card.className = 'word-card';
+                card.textContent = cardInfo.word;
+                card.draggable = true;
+                card.dataset.tense = cardInfo.tense;
+                wordBank.appendChild(card);
+                card.addEventListener('dragstart', dragStart);
+                card.addEventListener('dragend', dragEnd);
+            });
+
+            timer = setInterval(updateTimer, 1000);
+            startButton.textContent = '遊戲進行中...';
+            startButton.disabled = true;
+        }
+
+        function resetGame() {
+            score = 0;
+            seconds = 0;
+            wordsPlaced = 0;
+            scoreDisplay.textContent = '分數：0';
+            timerDisplay.textContent = '時間：0 秒';
+            wordBank.innerHTML = '';
+            dropZones.forEach(zone => {
+                zone.querySelector('.placed-words').innerHTML = '';
+            });
+            clearInterval(timer);
+            newHighScoreMsg.style.display = 'none';
+        }
+
+        function updateTimer() {
+            seconds++;
+            timerDisplay.textContent = `時間：${seconds} 秒`;
+        }
+
+        function dragStart(e) {
+            e.dataTransfer.setData('text/plain', e.target.id);
+            setTimeout(() => e.target.classList.add('dragging'), 0);
+        }
+
+        function dragEnd(e) {
+            e.target.classList.remove('dragging');
+        }
+
+        dropZones.forEach(zone => {
+            zone.addEventListener('dragover', dragOver);
+            zone.addEventListener('dragleave', dragLeave);
+            zone.addEventListener('drop', drop);
+        });
+
+        function dragOver(e) {
+            e.preventDefault();
+            this.classList.add('drag-over');
+        }
+
+        function dragLeave() {
+            this.classList.remove('drag-over');
+        }
+
+        function drop(e) {
+            e.preventDefault();
+            this.classList.remove('drag-over');
+            
+            const cardId = e.dataTransfer.getData('text/plain');
+            const draggedCard = document.getElementById(cardId);
+            if (!draggedCard) return; // 如果找不到卡片就中斷
+            
+            const isCorrect = this.dataset.tense === draggedCard.dataset.tense;
+
+            if (isCorrect) {
+                this.querySelector('.placed-words').appendChild(draggedCard);
+                draggedCard.draggable = false;
+                draggedCard.style.cursor = 'default';
+                draggedCard.style.backgroundColor = this.id === 'present-zone' ? '#2a9d8f' : '#e76f51';
+                
+                score += 10;
+                flashFeedback(this, 'correct');
+                wordsPlaced++;
+            } else {
+                score = Math.max(0, score - 5); // 分數不扣到負數
+                flashFeedback(this, 'incorrect');
+            }
+            
+            scoreDisplay.textContent = `分數：${score}`;
+
+            if (wordsPlaced === totalWords) {
+                endGame();
+            }
+        }
+        
+        function flashFeedback(element, type) {
+            element.classList.add(type);
+            setTimeout(() => element.classList.remove(type), 400);
+        }
+
+        function endGame() {
+            clearInterval(timer);
+            gameActive = false;
+            startButton.disabled = false;
+            startButton.textContent = '開始新遊戲';
+            
+            // 檢查是否為新高分
+            if (score > highScore) {
+                highScore = score;
+                localStorage.setItem('verbGameHighScore', highScore);
+                highScoreDisplay.textContent = `最高分：${highScore}`;
+                newHighScoreMsg.style.display = 'block';
+            }
+            
+            // 顯示結束 Modal
+            finalScoreElem.textContent = `你的總分是：${score}`;
+            finalTimeElem.textContent = `花費時間：${seconds} 秒`;
+            gameOverModal.classList.add('show');
+        }
+
+        // 當頁面載入完成後執行
+        window.onload = init;
+
+    </script>
+</body>
+</html>
+
