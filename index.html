@@ -1,78 +1,731 @@
 <!DOCTYPE html>
-<html lang="zh-Hant">
+<html lang="zh-TW">
 <head>
-    <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>系列選單</title>
+    <title>英文貪食蛇學習遊戲</title>
     <!-- 引入 Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
-        /* 使用 Google 字體 Inter */
-        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+        /* 使用 Inter 字體以獲得更好的排版效果 */
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;700&display=swap');
         body {
             font-family: 'Inter', sans-serif;
+            background-color: #0d1117; /* 深色背景 */
+            color: #e5e7eb;
+            overflow: hidden; /* 防止滾動 */
+        }
+        #game-board {
+            box-shadow: 0 0 30px rgba(76, 29, 149, 0.5); /* 紫色陰影 */
+            border: 4px solid #4c1d95; /* 邊框 */
+        }
+        /* 蛇頭 */
+        .snake-head {
+            background-color: #f5f10a; /* 黃綠色 */
+            border-radius: 16px;
+        }
+        /* 蛇身 */
+        .snake-body {
+            background-color: #f5f10a; /* 黃綠色 */
+            border-radius: px;
+        }
+        /* 正確字母 (統一外觀，不作提示) */
+        .correct-letter {
+            background-color: #fcfcfc; /* 白色 */
+            color: #1f2937;
+            /* 移除 font-weight: bold; */
+            border-radius: 4px; /* 統一為圓角方形 */
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            /* 移除 box-shadow: 0 0 10px #f59e0b; */ /* 移除發光提示 */
+        }
+        /* 錯誤字母 (統一外觀) */
+        .wrong-letter {
+            background-color: #fcfcfc; /* 白色 */
+            color: #1f2937;
+            border-radius: 4px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        /* 虛擬方向鍵樣式 (僅在小螢幕顯示) */
+        .dpad-button {
+            transition: transform 0.1s;
+        }
+        .dpad-button:active {
+            transform: scale(0.95);
+        }
+        /* 調整字母間距，讓整個單字看起來更像一個整體 */
+        .word-letter {
+             margin-right: 0.25rem; /* 小於預設的 tracking-widest */
         }
     </style>
 </head>
-<body class="bg-gray-100 flex items-center justify-center min-h-screen p-4">
+<body class="p-4 flex flex-col items-center justify-center min-h-screen">
 
-    <div class="flex flex-col md:flex-row gap-8 w-full max-w-5xl mx-auto">
-        <!-- 身為家長系列 -->
-        <div class="w-full md:w-1/2 bg-white rounded-2xl shadow-lg p-8">
-            <h1 class="text-2xl lg:text-3xl font-bold text-center text-gray-800 mb-8">『身為家長系列』</h1>
-            
-            <ul class="space-y-4">
-                <li>
-                    <a href="『身為家長系列』/動詞配對遊戲V1.html" class="block w-full bg-blue-500 hover:bg-blue-600 text-white font-semibold text-center rounded-lg p-4 transition duration-300 ease-in-out transform hover:-translate-y-1">
-                        動詞配對遊戲V1
-                    </a>
-                </li>
-                <li>
-                    <a href="『身為家長系列』/動詞配對遊戲V2.html" class="block w-full bg-green-500 hover:bg-green-600 text-white font-semibold text-center rounded-lg p-4 transition duration-300 ease-in-out transform hover:-translate-y-1">
-                        動詞配對遊戲V2
-                    </a>
-                </li>
-                <li>
-                    <a href="『身為家長系列』/英文貪食蛇遊戲.html" class="block w-full bg-blue-500 hover:bg-blue-600 text-white font-semibold text-center rounded-lg p-4 transition duration-300 ease-in-out transform hover:-translate-y-1">
-                        英文貪食蛇遊戲
-                    </a>
-                </li>
-            </ul>
+    <!-- 遊戲主容器 -->
+    <div id="game-container" class="w-full max-w-xl flex flex-col items-center">
+
+        <!-- 遊戲狀態顯示區 (HUD) -->
+        <div class="w-full bg-gray-800 p-4 rounded-lg mb-4 shadow-xl">
+            <div class="flex justify-between items-center mb-2">
+                <!-- 生命值 (text-3xl -> text-2xl) -->
+                <div class="text-2xl flex items-center">
+                    <span class="mr-2 text-red-400">機會:</span>
+                    <!-- 星星 (text-4xl -> text-3xl) -->
+                    <span id="lives-display" class="font-bold text-3xl"></span> 
+                </div>
+                <!-- 計時器 (text-4xl -> text-3xl) -->
+                <div id="timer-display" class="text-3xl font-extrabold text-yellow-300 transition-colors">30.0s</div>
+            </div>
+
+            <!-- 單字資訊 -->
+            <div class="text-center mb-2">
+                <!-- 中文意思 (text-xl -> text-base) -->
+                <p id="chinese-meaning" class="text-base text-gray-400">中文意思: -</p>
+                <!-- 詞性 (text-lg -> text-sm) -->
+                <p id="word-pos" class="text-sm italic text-indigo-400">詞性: -</p>
+                <!-- 單字本身 (text-6xl -> text-5xl) -->
+                <h2 id="word-progress" class="text-5xl font-black tracking-widest mt-1 text-white">W O R D</h2>
+            </div>
+
+            <!-- 連擊提示 -->
+            <div id="combo-display" class="text-center h-6">
+                <span class="text-xl font-bold text-pink-400 opacity-0 transition-opacity duration-300">COMBO!</span>
+            </div>
         </div>
 
-        <!-- 身為老師系列 -->
-        <div class="w-full md:w-1/2 bg-white rounded-2xl shadow-lg p-8">
-            <h1 class="text-2xl lg:text-3xl font-bold text-center text-gray-800 mb-8">『身為老師系列』</h1>
-            
-            <ul class="space-y-4">
-                <li>
-                    <a href="『身為老師系列』/微積分基礎技巧.html" class="block w-full bg-purple-500 hover:bg-purple-600 text-white font-semibold text-center rounded-lg p-4 transition duration-300 ease-in-out transform hover:-translate-y-1">
-                        微積分基礎技巧
-                    </a>
-                </li>
-                <li>
-                    <a href="『身為老師系列』/微積分基礎技巧(英文版).html" class="block w-full bg-purple-500 hover:bg-purple-600 text-white font-semibold text-center rounded-lg p-4 transition duration-300 ease-in-out transform hover:-translate-y-1">
-                        微積分基礎技巧(English)
-                    </a>
-                </li>
-                <li>
-                    <a href="『身為老師系列』/微積分能力練習.html" class="block w-full bg-indigo-500 hover:bg-indigo-600 text-white font-semibold text-center rounded-lg p-4 transition duration-300 ease-in-out transform hover:-translate-y-1">
-                        微積分能力練習
-                    </a>
-                </li>
-                                <li>
-                    <a href="『身為老師系列』/微積分能力練習(英文版).html" class="block w-full bg-indigo-500 hover:bg-indigo-600 text-white font-semibold text-center rounded-lg p-4 transition duration-300 ease-in-out transform hover:-translate-y-1">
-                        微積分能力練習(English)
-                    </a>
-                </li>
-            </ul>
+        <!-- 遊戲版面 (Canvas 視覺效果用，這裡用 DIV Grid 簡化) -->
+        <div id="game-board" class="bg-gray-900 aspect-square w-full max-w-xl relative rounded-xl transition-all">
+            <!-- 遊戲元素將由 JS 插入此處 -->
+        </div>
+
+        <!-- 已經移除手機虛擬方向鍵 (dpad) -->
+    </div>
+
+
+    <!-- 初始/結束畫面 Modal -->
+    <div id="modal-backdrop" class="fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center transition-opacity z-50">
+        <div class="bg-gray-700 p-8 rounded-xl shadow-2xl text-center w-80">
+            <h3 id="modal-title" class="text-3xl font-bold mb-4 text-white">貪食蛇英文遊戲</h3>
+            <p id="modal-message" class="mb-6 text-gray-300">在限定時間內，依序吃掉正確的英文字母來拼出單字！</p>
+            <div id="difficulty-select" class="flex flex-col space-y-3">
+                <button data-difficulty="beginner" class="start-btn bg-green-500 hover:bg-green-600 text-white font-bold py-3 px-6 rounded-lg shadow-md transition duration-200">
+                    初級 (基礎500單字)
+                </button>
+                <button data-difficulty="advanced" class="start-btn bg-red-500 hover:bg-red-600 text-white font-bold py-3 px-6 rounded-lg shadow-md transition duration-200">
+                    高級 (全部2000單字)
+                </button>
+            </div>
         </div>
     </div>
 
+    <script>
+        // --- 遊戲設定與資源 (Game Configuration & Resources) ---
+        const GRID_SIZE = 20; // 遊戲網格大小 (20x20)
+        const CELL_SIZE_VW = 2; // 每個單元格的視覺大小 (用於計算實際像素)
+        const INITIAL_LIVES = 3;
+
+        // 模擬國中高頻單字庫 (包含中文、英文、詞性)
+        const WORD_LIST = [
+            { en: "APPLE", cn: "蘋果", pos: "(n.)", difficulty: 'beginner' },
+            { en: "BEAUTIFUL", cn: "美麗的", pos: "(adj.)", difficulty: 'advanced' },
+            { en: "CLEAN", cn: "乾淨的", pos: "(adj.)", difficulty: 'beginner' },
+            { en: "DANGEROUS", cn: "危險的", pos: "(adj.)", difficulty: 'advanced' },
+            { en: "FRIEND", cn: "朋友", pos: "(n.)", difficulty: 'beginner' },
+            { en: "CELEBRATE", cn: "慶祝", pos: "(v.)", difficulty: 'advanced' },
+            { en: "DIFFERENCE", cn: "差異", pos: "(n.)", difficulty: 'advanced' },
+            { en: "HAPPY", cn: "快樂的", pos: "(adj.)", difficulty: 'beginner' },
+            { en: "IMPORTANT", cn: "重要的", pos: "(adj.)", difficulty: 'advanced' },
+            { en: "KNOWLEDGE", cn: "知識", pos: "(n.)", difficulty: 'advanced' },
+        ];
+
+        // 遊戲元素快取
+        const gameBoard = document.getElementById('game-board');
+        const livesDisplay = document.getElementById('lives-display');
+        const timerDisplay = document.getElementById('timer-display');
+        const chineseMeaning = document.getElementById('chinese-meaning');
+        const wordPOS = document.getElementById('word-pos');
+        const wordProgressDisplay = document.getElementById('word-progress');
+        const comboDisplay = document.getElementById('combo-display').querySelector('span');
+        const modalBackdrop = document.getElementById('modal-backdrop');
+        const modalTitle = document.getElementById('modal-title');
+        const modalMessage = document.getElementById('modal-message');
+        // const dpadButtons = document.querySelectorAll('#dpad button'); // 虛擬鍵盤已移除
+
+        // --- 遊戲狀態 (Game State) ---
+        let snake = [];
+        let direction = { x: 1, y: 0 }; // 初始向右
+        let nextDirection = { x: 1, y: 0 };
+        let food = null; // 當前要吃的字母 (包含正確字母和干擾字母列表)
+        let score = 0;
+        let lives = INITIAL_LIVES;
+        let currentWord = {};
+        let wordIndex = 0; // 當前單字拼寫進度
+        let gameLoopId;
+        let gameInterval = 150; // 遊戲速度（毫秒）
+        let difficulty = null;
+        let gameRunning = false;
+        let wordsUsed = []; // 已使用的單字索引
+        
+        // 計時器相關
+        let timer = 0;
+        let timeLimit = 30;
+        let timerIntervalId;
+
+        // 連擊相關
+        let comboCount = 0;
+        let lastEatTime = 0;
+        const COMBO_TIMEOUT = 3000; // 3秒內吃下正確字母算連擊
+
+        // --- 初始化與重置 (Initialization & Reset) ---
+
+        function setupGame() {
+            // 根據 Grid Size 設定 Board 樣式
+            gameBoard.style.gridTemplateColumns = `repeat(${GRID_SIZE}, 1fr)`;
+            gameBoard.style.gridTemplateRows = `repeat(${GRID_SIZE}, 1fr)`;
+            gameBoard.style.display = 'grid';
+
+            // 遊戲參數根據難度調整
+            // 根據使用者要求，初級與高級移動速度相同 (200ms)
+            gameInterval = 200; 
+        }
+
+        function resetGameState() {
+            snake = [{ x: 10, y: 10 }];
+            direction = { x: 1, y: 0 };
+            nextDirection = { x: 1, y: 0 };
+            lives = INITIAL_LIVES;
+            score = 0;
+            wordsUsed = [];
+            
+            comboCount = 0;
+            lastEatTime = 0;
+
+            // 清除計時器
+            clearInterval(timerIntervalId);
+        }
+
+        function startNewGame(selectedDifficulty) {
+            difficulty = selectedDifficulty;
+            resetGameState();
+            
+            // 隱藏 Modal
+            modalBackdrop.classList.add('opacity-0', 'invisible');
+            
+            setupGame();
+            
+            // 開始第一個單字
+            pickNewWord();
+
+            // 開始遊戲迴圈
+            gameRunning = true;
+            // 確保使用最新的 gameInterval
+            gameLoopId = setTimeout(gameLoop, gameInterval);
+
+            // 開始計時器
+            startTimer();
+        }
+
+        // --- 單字邏輯 (Word Logic) ---
+
+        function getAvailableWords() {
+            return WORD_LIST.filter(word => 
+                word.difficulty === difficulty || 
+                (difficulty === 'advanced' && word.difficulty === 'beginner')
+            );
+        }
+
+        function pickNewWord() {
+            const availableWords = getAvailableWords();
+            if (wordsUsed.length === availableWords.length) {
+                // 所有單字都已完成，玩家勝利
+                showModal("恭喜！所有單字挑戰完成！", `您的總得分是: ${score}`, true);
+                return;
+            }
+
+            let newWord;
+            let wordIndexInList;
+            do {
+                wordIndexInList = Math.floor(Math.random() * availableWords.length);
+                newWord = availableWords[wordIndexInList];
+            } while (wordsUsed.includes(wordIndexInList));
+
+            wordsUsed.push(wordIndexInList);
+            currentWord = newWord;
+            wordIndex = 0;
+            timer = timeLimit; // 重置時間
+
+            updateWordDisplay();
+            spawnFood();
+        }
+
+        function updateWordDisplay() {
+            const en = currentWord.en || "WORD";
+            
+            // 使用 span 標籤包裹每個字母，並透過 opacity 控制顯示狀態
+            let progressHTML = en.split('').map((char, i) => {
+                let opacityClass;
+                
+                if (i < wordIndex) {
+                    // 已吃到的字母：完全顯示 (opacity-100)
+                    opacityClass = "opacity-100 text-white";
+                } else {
+                    // 尚未吃到的字母：根據難度調整淡化程度
+                    if (difficulty === 'advanced') {
+                        // 高級模式：完全隱藏 (opacity-0, 100% 淡化)
+                        opacityClass = "opacity-0 text-white";
+                    } else {
+                        // 初級模式：極微淡化 (opacity-10)
+                        opacityClass = "opacity-10 text-white";
+                    }
+                }
+                // 使用 transition-opacity 讓顯示/透明化過程更平滑
+                return `<span class="${opacityClass} transition-opacity duration-300 word-letter">${char}</span>`;
+            }).join(''); 
+
+            chineseMeaning.textContent = `中文意思: ${currentWord.cn || '-'}`;
+            wordPOS.textContent = `詞性: ${currentWord.pos || '-'}`;
+            
+            wordProgressDisplay.innerHTML = progressHTML;
+            
+            livesDisplay.innerHTML = Array(lives).fill('⭐').join('');
+        }
+
+        function checkWordCompletion() {
+            if (wordIndex === currentWord.en.length) {
+                // 單字拼寫成功
+                score += currentWord.en.length * 100; // 基本分
+                snake.push({}); // 蛇身增長
+
+                // 重置連擊
+                comboCount = 0;
+                lastEatTime = 0;
+                hideComboDisplay();
+
+                // 進入下一個單字
+                pickNewWord();
+            } else {
+                // 繼續拼寫下一個字母，並重新生成所有字母 (重隨機化)
+                spawnFood();
+            }
+        }
+        
+        // --- 遊戲邏輯 (Game Loop & Collision) ---
+
+        function gameLoop() {
+            if (!gameRunning) return;
+
+            moveSnake();
+
+            // 1. 檢查字母碰撞
+            checkFoodCollision();
+
+            // 2. 檢查邊界和自身碰撞 (Advanced 難度)
+            checkBoundaryAndSelfCollision();
+
+            // 繪製遊戲狀態
+            drawGame();
+
+            // 安排下一個迴圈
+            gameLoopId = setTimeout(gameLoop, gameInterval);
+        }
+
+        function moveSnake() {
+            const head = { ...snake[0] };
+            
+            // 更新方向 (防止反向移動)
+            if (Math.abs(direction.x + nextDirection.x) !== 0 || Math.abs(direction.y + nextDirection.y) !== 0) {
+                direction = nextDirection;
+            }
+
+            head.x += direction.x;
+            head.y += direction.y;
+
+            snake.unshift(head); // 新的頭部
+            snake.pop(); // 移除尾部 (除非吃到食物)
+        }
+        
+        function checkBoundaryAndSelfCollision() {
+            const head = snake[0];
+            const hitWall = head.x < 0 || head.x >= GRID_SIZE || head.y < 0 || head.y >= GRID_SIZE;
+            const hitSelf = snake.slice(1).some(segment => segment.x === head.x && segment.y === head.y);
+
+            if (hitWall || hitSelf) {
+                handleHit(hitWall);
+            }
+        }
+        
+        function handleHit(hitWall) {
+             if (difficulty === 'beginner' && !hitWall) {
+                // 初級: 撞到自身不扣機會，只重置位置
+                snake = [{ x: 10, y: 10 }];
+                return;
+            }
+            
+            if (difficulty === 'advanced' || hitWall) {
+                // 高級: 撞牆或撞到自身扣除機會
+                lives--;
+                updateWordDisplay();
+                
+                if (lives <= 0) {
+                    gameOver();
+                } else {
+                    // 重置蛇的位置
+                    snake = [{ x: 10, y: 10 }];
+                    direction = { x: 1, y: 0 };
+                    nextDirection = { x: 1, y: 0 };
+                }
+            }
+        }
+
+        // Helper function to check if the head hit any wrong letter
+        function checkHitWrongLetter(head) {
+            if (food && food.wrongLetters) {
+                // 確認蛇頭座標是否與任何錯誤字母的座標重疊
+                return food.wrongLetters.findIndex(item => head.x === item.x && head.y === item.y);
+            }
+            return -1;
+        }
+        
+        function checkFoodCollision() {
+            const head = snake[0];
+            
+            // 1. 檢查是否吃到錯誤字母 (干擾物)
+            const wrongIndex = checkHitWrongLetter(head);
+
+            if (wrongIndex !== -1) {
+                // *** 吃到錯誤字母 ***
+                
+                lives--;
+                updateWordDisplay();
+                
+                // 重置連擊
+                comboCount = 0;
+                hideComboDisplay();
+                
+                if (lives <= 0) {
+                    gameOver();
+                } else {
+                    // 錯誤字母消失 (透過重新生成所有字母實現 - spawnFood)
+                    spawnFood(); 
+                }
+                return; // 吃到錯誤字母後，停止檢查
+            }
+
+
+            // 2. 檢查是否吃到正確字母
+            if (food && food.type === 'correct' && head.x === food.x && head.y === food.y) {
+                const requiredLetter = currentWord.en[wordIndex];
+                
+                if (food.value === requiredLetter) {
+                    // *** 吃到正確字母 ***
+                    
+                    // 1. 檢查連擊
+                    checkCombo();
+
+                    // 2. 增加分數和長度
+                    score += 100;
+                    snake.push({}); // 增加蛇的長度
+                    wordIndex++;
+
+                    // **FIX: 吃到正確字母後，立即更新顯示狀態**
+                    updateWordDisplay();
+
+                    // 3. 檢查單字是否完成 (會呼叫 spawnFood 重新隨機化)
+                    checkWordCompletion();
+                    return; 
+                }
+            }
+        }
+
+        // --- 連擊與計時 (Combo & Timer) ---
+
+        function startTimer() {
+            clearInterval(timerIntervalId);
+            timerIntervalId = setInterval(() => {
+                if (!gameRunning) {
+                    clearInterval(timerIntervalId);
+                    return;
+                }
+                
+                timer -= 0.1;
+                timer = Math.max(0, timer); // 不讓時間變成負數
+                
+                timerDisplay.textContent = `${timer.toFixed(1)}s`;
+                
+                // 時間少於 5 秒變色警告
+                if (timer < 5) {
+                    timerDisplay.classList.add('text-red-500');
+                } else {
+                    timerDisplay.classList.remove('text-red-500');
+                }
+
+                if (timer === 0) {
+                    // 時間到，扣除機會並重置單字進度
+                    if (difficulty === 'advanced' || difficulty === 'beginner') {
+                        lives--;
+                        updateWordDisplay();
+                        if (lives <= 0) {
+                            gameOver();
+                        } else {
+                            // 時間到，重置單字進度
+                            wordIndex = 0;
+                            timer = timeLimit;
+                            spawnFood();
+                        }
+                    }
+                }
+            }, 100);
+        }
+        
+        function checkCombo() {
+            const currentTime = Date.now();
+            if (currentTime - lastEatTime <= COMBO_TIMEOUT) {
+                comboCount++;
+                score += comboCount * 20; // 連擊額外分數
+                
+                showComboDisplay(comboCount);
+
+                if (comboCount >= 5) {
+                    // 連擊 5 次以上，增加時間
+                    timer = Math.min(timeLimit, timer + 3);
+                }
+            } else {
+                comboCount = 1; // 重新計算連擊
+                showComboDisplay(comboCount);
+            }
+            lastEatTime = currentTime;
+        }
+
+        function showComboDisplay(count) {
+            comboDisplay.textContent = `COMBO x${count}!`;
+            comboDisplay.classList.remove('opacity-0');
+            comboDisplay.classList.add('scale-110', 'animate-pulse');
+            
+            // 延遲後淡出
+            setTimeout(hideComboDisplay, 1500);
+        }
+        
+        function hideComboDisplay() {
+             comboDisplay.classList.add('opacity-0');
+             comboDisplay.classList.remove('scale-110', 'animate-pulse');
+        }
+
+        // --- 繪圖與渲染 (Drawing & Rendering) ---
+
+        function getRandomPosition() {
+            return {
+                x: Math.floor(Math.random() * GRID_SIZE),
+                y: Math.floor(Math.random() * GRID_SIZE)
+            };
+        }
+        
+        function isOccupied(pos) {
+            // 檢查是否與蛇身重疊
+            if (snake.some(segment => segment.x === pos.x && segment.y === pos.y)) return true;
+            // 檢查是否與正確字母重疊
+            if (food && food.x === pos.x && food.y === pos.y) return true;
+            // 檢查是否與干擾字母重疊
+            if (food && food.wrongLetters && food.wrongLetters.some(item => item.x === pos.x && item.y === pos.y)) return true;
+            
+            return false;
+        }
+
+        function spawnFood() {
+            if (wordIndex >= currentWord.en.length) return;
+
+            const requiredLetter = currentWord.en[wordIndex];
+            
+            // 1. 生成正確字母 (FOOD)
+            let pos;
+            do {
+                pos = getRandomPosition();
+            } while (isOccupied(pos));
+            food = { ...pos, value: requiredLetter, type: 'correct' }; // 確保正確字母被放置 (Change 1)
+            
+            // 2. 生成干擾字母 (Wrong Letters) - 重新生成新的干擾物陣列
+            const allLetters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'.split('');
+            const wrongLetters = allLetters.filter(l => l !== requiredLetter);
+            food.wrongLetters = [];
+
+            // 根據使用者要求，調整初級與高級的干擾字母數量
+            let numWrongLetters;
+            if (difficulty === 'beginner') {
+                numWrongLetters = 5; // 初級模式：5 個干擾字母
+            } else {
+                numWrongLetters = 10; // 高級模式：10 個干擾字母
+            }
+            
+            for (let i = 0; i < numWrongLetters; i++) { 
+                let wrongPos;
+                let letterValue = wrongLetters[i % wrongLetters.length] || 'X'; 
+                do {
+                    wrongPos = getRandomPosition();
+                } while (isOccupied(wrongPos));
+                
+                food.wrongLetters.push({ ...wrongPos, value: letterValue, type: 'wrong' });
+            }
+        }
+        
+        function drawGame() {
+            gameBoard.innerHTML = '';
+            
+            // 繪製蛇
+            snake.forEach((segment, index) => {
+                const segmentEl = document.createElement('div');
+                segmentEl.style.gridRowStart = segment.y + 1;
+                segmentEl.style.gridColumnStart = segment.x + 1;
+                segmentEl.className = index === 0 ? 'snake-head' : 'snake-body';
+                gameBoard.appendChild(segmentEl);
+            });
+            
+            // 繪製正確字母 (Food)
+            if (food && food.type === 'correct') {
+                const foodEl = document.createElement('div');
+                foodEl.style.gridRowStart = food.y + 1;
+                foodEl.style.gridColumnStart = food.x + 1;
+                // 將字體大小調整為與錯誤字母一致
+                foodEl.className = 'correct-letter text-lg'; 
+                foodEl.textContent = food.value;
+                gameBoard.appendChild(foodEl);
+            }
+            
+            // 繪製干擾字母 (Wrong Letters)
+            if (food && food.wrongLetters) {
+                food.wrongLetters.forEach(item => {
+                    const wrongEl = document.createElement('div');
+                    wrongEl.style.gridRowStart = item.y + 1;
+                    wrongEl.style.gridColumnStart = item.x + 1;
+                    
+                    if (item.value) {
+                         wrongEl.className = 'wrong-letter text-lg';
+                         wrongEl.textContent = item.value;
+                         gameBoard.appendChild(wrongEl);
+                    }
+                });
+            }
+        }
+        
+        // --- 遊戲結束 (Game Over) ---
+
+        function gameOver() {
+            gameRunning = false;
+            clearTimeout(gameLoopId);
+            clearInterval(timerIntervalId);
+
+            modalTitle.textContent = "遊戲結束 (Game Over)";
+            modalMessage.innerHTML = `很可惜，您的機會已用盡。 <br> **總得分: ${score}** <br> 點擊下方按鈕重新開始！`;
+            modalBackdrop.classList.remove('opacity-0', 'invisible');
+
+            // 調整按鈕顯示，只保留重試
+            document.getElementById('difficulty-select').innerHTML = `
+                <button data-difficulty="beginner" class="start-btn bg-green-500 hover:bg-green-600 text-white font-bold py-3 px-6 rounded-lg shadow-md transition duration-200">
+                    再試一次 (初級)
+                </button>
+                <button data-difficulty="advanced" class="start-btn bg-red-500 hover:bg-red-600 text-white font-bold py-3 px-6 rounded-lg shadow-md transition duration-200">
+                    再試一次 (高級)
+                </button>
+            `;
+            document.querySelectorAll('.start-btn').forEach(btn => btn.addEventListener('click', handleStartButton));
+        }
+
+
+        // --- 輸入控制 (Input Control - PC & Mobile) ---
+
+        function changeDirection(newDir) {
+            // 防止立即反向移動 (例如: 正在向右，不能馬上向左)
+            if (newDir.x !== -direction.x || newDir.y !== -direction.y) {
+                nextDirection = newDir;
+            }
+        }
+
+        // 鍵盤控制 (PC)
+        document.addEventListener('keydown', e => {
+            if (!gameRunning) return;
+            switch (e.key) {
+                case 'ArrowUp':
+                case 'w':
+                case 'W':
+                    changeDirection({ x: 0, y: -1 });
+                    break;
+                case 'ArrowDown':
+                case 's':
+                case 'S':
+                    changeDirection({ x: 0, y: 1 });
+                    break;
+                case 'ArrowLeft':
+                case 'a':
+                case 'A':
+                    changeDirection({ x: -1, y: 0 });
+                    break;
+                case 'ArrowRight':
+                case 'd':
+                case 'D':
+                    changeDirection({ x: 1, y: 0 });
+                    break;
+            }
+        });
+
+        // 虛擬方向鍵控制 (已移除)
+        // dpadButtons.forEach(button => {
+        //     button.addEventListener('click', () => {
+        //         // ... 邏輯已移除
+        //     });
+        // });
+
+        // 觸控滑動控制 (Mobile Swipe)
+        let touchStartX = 0;
+        let touchStartY = 0;
+
+        gameBoard.addEventListener('touchstart', e => {
+            if (!gameRunning) return;
+            touchStartX = e.touches[0].clientX;
+            touchStartY = e.touches[0].clientY;
+            e.preventDefault(); // 防止滾動
+        }, { passive: false });
+
+        gameBoard.addEventListener('touchmove', e => {
+            // 防止滑動時遊戲板滾動
+            e.preventDefault();
+        }, { passive: false });
+
+
+        gameBoard.addEventListener('touchend', e => {
+            if (!gameRunning) return;
+            const touchEndX = e.changedTouches[0].clientX;
+            const touchEndY = e.changedTouches[0].clientY;
+
+            const dx = touchEndX - touchStartX;
+            const dy = touchEndY - touchStartY;
+            const threshold = 30; // 最小滑動距離
+
+            if (Math.abs(dx) > Math.abs(dy) && Math.abs(dx) > threshold) {
+                // 水平滑動
+                changeDirection(dx > 0 ? { x: 1, y: 0 } : { x: -1, y: 0 });
+            } else if (Math.abs(dy) > Math.abs(dx) && Math.abs(dy) > threshold) {
+                // 垂直滑動
+                changeDirection(dy > 0 ? { x: 0, y: 1 } : { x: 0, y: -1 });
+            }
+        });
+
+        // --- 啟動函式 (Startup) ---
+        function handleStartButton(e) {
+            const selectedDifficulty = e.currentTarget.getAttribute('data-difficulty');
+            startNewGame(selectedDifficulty);
+        }
+
+        window.onload = () => {
+            // 綁定開始按鈕事件
+            document.querySelectorAll('.start-btn').forEach(btn => {
+                btn.addEventListener('click', handleStartButton);
+            });
+            
+            // 確保初始狀態顯示正確
+            updateWordDisplay();
+        };
+
+    </script>
 </body>
 </html>
-
-
-
-
-
