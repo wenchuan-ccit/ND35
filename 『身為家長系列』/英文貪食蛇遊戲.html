@@ -70,22 +70,24 @@
         <!-- 遊戲狀態顯示區 (HUD) -->
         <div class="w-full bg-gray-800 p-4 rounded-lg mb-4 shadow-xl">
             <div class="flex justify-between items-center mb-2">
-                <!-- 生命值 -->
-                <div class="text-3xl flex items-center">
+                <!-- 生命值 (text-3xl -> text-2xl) -->
+                <div class="text-2xl flex items-center">
                     <span class="mr-2 text-red-400">機會:</span>
-                    <span id="lives-display" class="font-bold text-4xl"></span>
+                    <!-- 星星 (text-4xl -> text-3xl) -->
+                    <span id="lives-display" class="font-bold text-3xl"></span> 
                 </div>
-                <!-- 計時器 -->
-                <div id="timer-display" class="text-4xl font-extrabold text-yellow-300 transition-colors">30.0s</div>
+                <!-- 計時器 (text-4xl -> text-3xl) -->
+                <div id="timer-display" class="text-3xl font-extrabold text-yellow-300 transition-colors">30.0s</div>
             </div>
 
             <!-- 單字資訊 -->
             <div class="text-center mb-2">
-                <!-- 中文意思和詞性預設完整顯示 -->
-                <p id="chinese-meaning" class="text-xl text-gray-400">中文意思: -</p>
-                <p id="word-pos" class="text-lg italic text-indigo-400">詞性: -</p>
-                <!-- 單字本身，透過 JS 控制每個字母的 Opacity -->
-                <h2 id="word-progress" class="text-6xl font-black tracking-widest mt-1 text-white">W O R D</h2>
+                <!-- 中文意思 (text-xl -> text-base) -->
+                <p id="chinese-meaning" class="text-base text-gray-400">中文意思: -</p>
+                <!-- 詞性 (text-lg -> text-sm) -->
+                <p id="word-pos" class="text-sm italic text-indigo-400">詞性: -</p>
+                <!-- 單字本身 (text-6xl -> text-5xl) -->
+                <h2 id="word-progress" class="text-5xl font-black tracking-widest mt-1 text-white">W O R D</h2>
             </div>
 
             <!-- 連擊提示 -->
@@ -99,15 +101,7 @@
             <!-- 遊戲元素將由 JS 插入此處 -->
         </div>
 
-        <!-- 手機虛擬方向鍵 (僅在小螢幕顯示) -->
-        <div id="dpad" class="sm:hidden w-full mt-4 flex flex-col items-center">
-            <button data-dir="up" class="dpad-button bg-indigo-600 hover:bg-indigo-700 p-3 rounded-t-lg w-16 mb-1 text-white font-bold shadow-lg">▲</button>
-            <div class="flex justify-center w-full">
-                <button data-dir="left" class="dpad-button bg-indigo-600 hover:bg-indigo-700 p-3 rounded-l-lg mr-1 text-white font-bold shadow-lg">◀</button>
-                <button data-dir="right" class="dpad-button bg-indigo-600 hover:bg-indigo-700 p-3 rounded-r-lg ml-1 text-white font-bold shadow-lg">▶</button>
-            </div>
-            <button data-dir="down" class="dpad-button bg-indigo-600 hover:bg-indigo-700 p-3 rounded-b-lg w-16 mt-1 text-white font-bold shadow-lg">▼</button>
-        </div>
+        <!-- 已經移除手機虛擬方向鍵 (dpad) -->
     </div>
 
 
@@ -158,7 +152,7 @@
         const modalBackdrop = document.getElementById('modal-backdrop');
         const modalTitle = document.getElementById('modal-title');
         const modalMessage = document.getElementById('modal-message');
-        const dpadButtons = document.querySelectorAll('#dpad button');
+        // const dpadButtons = document.querySelectorAll('#dpad button'); // 虛擬鍵盤已移除
 
         // --- 遊戲狀態 (Game State) ---
         let snake = [];
@@ -674,19 +668,12 @@
             }
         });
 
-        // 虛擬方向鍵控制 (Mobile DPad)
-        dpadButtons.forEach(button => {
-            button.addEventListener('click', () => {
-                if (!gameRunning) return;
-                const dir = button.getAttribute('data-dir');
-                switch (dir) {
-                    case 'up': changeDirection({ x: 0, y: -1 }); break;
-                    case 'down': changeDirection({ x: 0, y: 1 }); break;
-                    case 'left': changeDirection({ x: -1, y: 0 }); break;
-                    case 'right': changeDirection({ x: 1, y: 0 }); break;
-                }
-            });
-        });
+        // 虛擬方向鍵控制 (已移除)
+        // dpadButtons.forEach(button => {
+        //     button.addEventListener('click', () => {
+        //         // ... 邏輯已移除
+        //     });
+        // });
 
         // 觸控滑動控制 (Mobile Swipe)
         let touchStartX = 0;
