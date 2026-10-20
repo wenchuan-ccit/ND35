@@ -1,74 +1,412 @@
 <!DOCTYPE html>
-<html lang="zh-Hant">
+<html lang="zh-TW">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>系列選單</title>
-    <!-- 引入 Tailwind CSS -->
-    <script src="https://cdn.tailwindcss.com"></script>
-    <style>
-        /* 使用 Google 字體 Inter */
-        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
-        body {
-            font-family: 'Inter', sans-serif;
-        }
-    </style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>(動力系)ND35研討會論文審查系統</title>
+  <style>
+    :root {
+      --primary: #2b5876;
+      --secondary: #4e4376;
+      --bg: #f4f7f6;
+      --disabled: #e0e0e0;
+    }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+      background-color: var(--bg);
+      margin: 0;
+      padding: 15px;
+      color: #333;
+    }
+    .container {
+      max-width: 900px;
+      margin: 0 auto;
+    }
+    h1, h2 {
+      text-align: center;
+      color: var(--primary);
+    }
+    .card {
+      background: white;
+      border-radius: 12px;
+      padding: 20px;
+      margin-bottom: 20px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+    }
+    /* 第一區塊: 排名圖表 */
+    .chart-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-bottom: 2px solid #eee;
+      padding-bottom: 10px;
+      margin-bottom: 15px;
+    }
+    .bar-item {
+      display: flex;
+      align-items: center;
+      margin-bottom: 10px;
+    }
+    .bar-label {
+      width: 140px;
+      font-size: 0.9em;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .bar-track {
+      flex: 1;
+      background-color: #e9ecef;
+      height: 22px;
+      border-radius: 11px;
+      overflow: hidden;
+      margin: 0 10px;
+      position: relative;
+    }
+    .bar-fill {
+      height: 100%;
+      background: linear-gradient(90deg, #4e4376, #2b5876);
+      border-radius: 11px;
+      transition: width 0.5s ease;
+    }
+    .bar-score {
+      width: 45px;
+      font-weight: bold;
+      text-align: right;
+    }
+    .toggle-btn {
+      display: block;
+      width: 100%;
+      padding: 8px;
+      background: none;
+      border: 1px solid var(--primary);
+      color: var(--primary);
+      border-radius: 6px;
+      cursor: pointer;
+      margin-top: 10px;
+      font-weight: bold;
+    }
+    /* 第二區塊: 評審作業 */
+    .form-group {
+      margin-bottom: 15px;
+    }
+    label {
+      display: block;
+      margin-bottom: 5px;
+      font-weight: bold;
+    }
+    select {
+      width: 100%;
+      padding: 10px;
+      border-radius: 6px;
+      border: 1px solid #ccc;
+      font-size: 1em;
+    }
+    .paper-card {
+      border: 1px solid #e0e0e0;
+      border-radius: 8px;
+      padding: 15px;
+      margin-bottom: 12px;
+      background: #fff;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+    .paper-card.avoided {
+      background: var(--disabled);
+      opacity: 0.7;
+    }
+    .paper-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .paper-title {
+      font-weight: bold;
+      font-size: 1.05em;
+    }
+    .paper-meta {
+      font-size: 0.85em;
+      color: #666;
+    }
+    .action-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-top: 5px;
+    }
+    .btn-download {
+      background-color: #28a745;
+      color: white;
+      border: none;
+      padding: 6px 12px;
+      border-radius: 4px;
+      text-decoration: none;
+      font-size: 0.9em;
+    }
+    .score-select {
+      width: 120px;
+    }
+    .btn-save {
+      width: 100%;
+      padding: 14px;
+      background-color: var(--primary);
+      color: white;
+      border: none;
+      border-radius: 8px;
+      font-size: 1.1em;
+      font-weight: bold;
+      cursor: pointer;
+      margin-top: 15px;
+    }
+    .btn-save:disabled {
+      background-color: #ccc;
+    }
+    .badge {
+      display: inline-block;
+      padding: 2px 8px;
+      border-radius: 4px;
+      font-size: 0.8em;
+      color: white;
+      background: #6c757d;
+    }
+    .badge-avoid {
+      background: #dc3545;
+    }
+  </style>
 </head>
-<body class="bg-gray-100 flex items-center justify-center min-h-screen p-4">
+<body>
 
-    <div class="flex flex-col md:flex-row gap-8 w-full max-w-5xl mx-auto">
-        <!-- 身為家長系列 -->
-        <div class="w-full md:w-1/2 bg-white rounded-2xl shadow-lg p-8">
-            <h1 class="text-2xl lg:text-3xl font-bold text-center text-gray-800 mb-8">『身為家長系列』</h1>
-            
-            <ul class="space-y-4">
-                <li>
-                    <a href="『身為家長系列』/動詞配對遊戲V1.html" class="block w-full bg-blue-500 hover:bg-blue-600 text-white font-semibold text-center rounded-lg p-4 transition duration-300 ease-in-out transform hover:-translate-y-1">
-                        動詞配對遊戲V1
-                    </a>
-                </li>
-                <li>
-                    <a href="『身為家長系列』/動詞配對遊戲V2.html" class="block w-full bg-green-500 hover:bg-green-600 text-white font-semibold text-center rounded-lg p-4 transition duration-300 ease-in-out transform hover:-translate-y-1">
-                        動詞配對遊戲V2
-                    </a>
-                </li>
-                                <li>
-                    <a href="『身為家長系列』/英文貪食蛇遊戲.html" class="block w-full bg-yellow-500 hover:bg-yellow-600 text-white font-semibold text-center rounded-lg p-4 transition duration-300 ease-in-out transform hover:-translate-y-1">
-                        英文貪食蛇遊戲
-                    </a>
-                </li>
-            </ul>
-        </div>
+<div class="container">
+  <h1>(動力系)ND35研討會論文審查系統</h1>
 
-        <!-- 身為老師系列 -->
-        <div class="w-full md:w-1/2 bg-white rounded-2xl shadow-lg p-8">
-            <h1 class="text-2xl lg:text-3xl font-bold text-center text-gray-800 mb-8">『身為老師系列』</h1>
-            
-            <ul class="space-y-4">
-                <li>
-                    <a href="『身為老師系列』/微積分基礎技巧.html" class="block w-full bg-purple-500 hover:bg-purple-600 text-white font-semibold text-center rounded-lg p-4 transition duration-300 ease-in-out transform hover:-translate-y-1">
-                        微積分基礎技巧
-                    </a>
-                </li>
-                <li>
-                    <a href="『身為老師系列』/微積分基礎技巧(英文版).html" class="block w-full bg-purple-500 hover:bg-purple-600 text-white font-semibold text-center rounded-lg p-4 transition duration-300 ease-in-out transform hover:-translate-y-1">
-                        微積分基礎技巧 (English)
-                    </a>
-                </li>
-                <li>
-                    <a href="『身為老師系列』/微積分能力練習.html" class="block w-full bg-indigo-500 hover:bg-indigo-600 text-white font-semibold text-center rounded-lg p-4 transition duration-300 ease-in-out transform hover:-translate-y-1">
-                        微積分能力練習
-                    </a>
-                </li>
-                                <li>
-                    <a href="『身為老師系列』/微積分能力練習(英文版).html" class="block w-full bg-indigo-500 hover:bg-indigo-600 text-white font-semibold text-center rounded-lg p-4 transition duration-300 ease-in-out transform hover:-translate-y-1">
-                        微積分能力練習 (English)
-                    </a>
-                </li>
-            </ul>
-        </div>
+  <!-- 第一區塊：即時總分排名 -->
+  <div class="card">
+    <div class="chart-header">
+      <h2>🏆 即時總分排名</h2>
+      <div>
+        <button onclick="switchTab('論文')" id="tab-paper" style="font-weight:bold;">論文組</button>
+        <button onclick="switchTab('海報')" id="tab-poster">海報組</button>
+      </div>
     </div>
+    <div id="ranking-list">讀取中...</div>
+    <button class="toggle-btn" id="btn-toggle-expand" onclick="toggleExpand()">展開看全部</button>
+  </div>
+
+  <!-- 第二區塊：評審作業 -->
+  <div class="card">
+    <h2>✍️ 評審審查作業</h2>
+    
+    <div class="form-group">
+      <label for="group-select">1. 選擇組別：</label>
+      <select id="group-select" onchange="onGroupChange()">
+        <option value="">-- 請選擇組別 --</option>
+      </select>
+    </div>
+
+    <div class="form-group">
+      <label for="reviewer-select">2. 選擇審查人姓名：</label>
+      <select id="reviewer-select" onchange="onReviewerChange()" disabled>
+        <option value="">-- 請先選擇組別 --</option>
+      </select>
+    </div>
+
+    <div id="manuscript-section" style="display:none;">
+      <h3>審查稿件清單</h3>
+      <div id="manuscript-list"></div>
+      <button class="btn-save" id="btn-save" onclick="saveScores()">儲存評分</button>
+    </div>
+  </div>
+</div>
+
+<script>
+  // **請填入您部署的 GAS Web App 網址**
+  const API_URL = "https://script.google.com/macros/s/AKfycbxxA3DKJYI9rkKPexqzEB1gIlXrlBvC4_nT1CTrxS6oeGBsl_RF6LgAx5Ch1uBE0Zk/exec"; 
+  
+  // 論文檔案路徑資料夾 (預設於 GitHub 專案內的 papers/ 目錄)
+  const PAPER_FOLDER_URL = "papers/"; 
+
+  let appData = { manuscripts: [], reviewers: [] };
+  let currentTab = '論文'; // 預設顯示論文組排名
+  let isExpanded = false;
+
+  // 初始化讀取資料
+  window.onload = function() {
+    loadData();
+  };
+
+  function loadData() {
+    fetch(API_URL)
+      .then(res => res.json())
+      .then(data => {
+        appData = data;
+        renderRankings();
+        setupGroupDropdown();
+      })
+      .catch(err => alert("資料載入失敗，請確認 API 網址設定：" + err));
+  }
+
+  // --- 第一區塊：排名邏輯 ---
+  function switchTab(type) {
+    currentTab = type;
+    renderRankings();
+  }
+
+  function toggleExpand() {
+    isExpanded = !isExpanded;
+    document.getElementById('btn-toggle-expand').innerText = isExpanded ? "收合前6名" : "展開看全部";
+    renderRankings();
+  }
+
+  function renderRankings() {
+    const listContainer = document.getElementById('ranking-list');
+    
+    // 篩選與排序
+    let list = appData.manuscripts.filter(m => m.type === currentTab);
+    list.sort((a, b) => b.totalScore - a.totalScore);
+
+    const maxScore = list.length > 0 ? Math.max(...list.map(m => m.totalScore), 1) : 1;
+    const displayList = isExpanded ? list : list.slice(0, 6);
+
+    let html = "";
+    displayList.forEach((item, index) => {
+      const percentage = Math.min(100, (item.totalScore / maxScore) * 100);
+      html += `
+        <div class="bar-item">
+          <div class="bar-label" title="${item.id} ${item.title}">
+            <strong>#${index + 1} [${item.id}]</strong> ${item.title}
+          </div>
+          <div class="bar-track">
+            <div class="bar-fill" style="width: ${percentage}%;"></div>
+          </div>
+          <div class="bar-score">${item.totalScore} 分</div>
+        </div>
+      `;
+    });
+
+    listContainer.innerHTML = html || "<p>暫無資料</p>";
+  }
+
+  // --- 第二區塊：評審作業邏輯 ---
+  function setupGroupDropdown() {
+    const groupSelect = document.getElementById('group-select');
+    const groups = [...new Set(appData.reviewers.map(r => r.group))];
+    
+    groupSelect.innerHTML = '<option value="">-- 請選擇組別 --</option>';
+    groups.forEach(g => {
+      groupSelect.innerHTML += `<option value="${g}">${g}</option>`;
+    });
+  }
+
+  function onGroupChange() {
+    const group = document.getElementById('group-select').value;
+    const reviewerSelect = document.getElementById('reviewer-select');
+    
+    if (!group) {
+      reviewerSelect.disabled = true;
+      reviewerSelect.innerHTML = '<option value="">-- 請先選擇組別 --</option>';
+      document.getElementById('manuscript-section').style.display = 'none';
+      return;
+    }
+
+    const filtered = appData.reviewers.filter(r => r.group === group);
+    reviewerSelect.innerHTML = '<option value="">-- 請選擇您的姓名 --</option>';
+    filtered.forEach(r => {
+      reviewerSelect.innerHTML += `<option value="${r.name}">${r.name}</option>`;
+    });
+    reviewerSelect.disabled = false;
+    document.getElementById('manuscript-section').style.display = 'none';
+  }
+
+  function onReviewerChange() {
+    const name = document.getElementById('reviewer-select').value;
+    if (!name) {
+      document.getElementById('manuscript-section').style.display = 'none';
+      return;
+    }
+    renderManuscriptsForReviewer(name);
+  }
+
+  function renderManuscriptsForReviewer(reviewerName) {
+    const reviewer = appData.reviewers.find(r => r.name === reviewerName);
+    const container = document.getElementById('manuscript-list');
+    container.innerHTML = "";
+
+    appData.manuscripts.forEach(m => {
+      const isAvoided = reviewer.avoidList.includes(m.id);
+      const previousScore = reviewer.scores[m.id];
+
+      let options = '<option value="">請評分</option>';
+      for (let i = 1; i <= 10; i++) {
+        const selected = (previousScore === i) ? 'selected' : '';
+        options += `<option value="${i}" ${selected}>${i} 分</option>`;
+      }
+
+      const card = document.createElement('div');
+      card.className = `paper-card ${isAvoided ? 'avoided' : ''}`;
+      card.innerHTML = `
+        <div class="paper-header">
+          <span class="paper-title">[${m.id}] ${m.title}</span>
+          ${isAvoided ? '<span class="badge badge-avoid">迴避審查</span>' : `<span class="badge">${m.type}</span>`}
+        </div>
+        <div class="paper-meta">單位：${m.unit} | 作者：${m.authors}</div>
+        <div class="action-row">
+          <a href="${PAPER_FOLDER_URL}${m.id}.pdf" target="_blank" class="btn-download">📄 下載稿件</a>
+          <div>
+            <label style="display:inline; margin-right:5px;">評分：</label>
+            <select class="score-select" data-paper-id="${m.id}" ${isAvoided ? 'disabled' : ''}>
+              ${isAvoided ? '<option value="">無法評分</option>' : options}
+            </select>
+          </div>
+        </div>
+      `;
+      container.appendChild(card);
+    });
+
+    document.getElementById('manuscript-section').style.display = 'block';
+  }
+
+  // 儲存評分
+  function saveScores() {
+    const reviewerName = document.getElementById('reviewer-select').value;
+    const selects = document.querySelectorAll('.score-select');
+    const scores = {};
+
+    selects.forEach(s => {
+      if (!s.disabled) {
+        const pId = s.getAttribute('data-paper-id');
+        const val = s.value;
+        scores[pId] = val !== "" ? Number(val) : null;
+      }
+    });
+
+    const btnSave = document.getElementById('btn-save');
+    btnSave.disabled = true;
+    btnSave.innerText = "儲存中...";
+
+    fetch(API_URL, {
+      method: 'POST',
+      body: JSON.stringify({
+        reviewerName: reviewerName,
+        scores: scores
+      })
+    })
+    .then(res => res.json())
+    .then(res => {
+      if (res.status === 'success') {
+        alert("評分儲存成功！");
+        loadData(); // 重新載入最新資料與排名
+      } else {
+        alert("儲存失敗：" + res.message);
+      }
+    })
+    .catch(err => alert("網路錯誤，儲存失敗：" + err))
+    .finally(() => {
+      btnSave.disabled = false;
+      btnSave.innerText = "儲存評分";
+    });
+  }
+</script>
 
 </body>
 </html>
-
