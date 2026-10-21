@@ -3,301 +3,654 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>(動力系)ND35研討會論文審查系統</title>
+  <title>研討會論文審查系統</title>
+  <!-- Google Fonts & FontAwesome Icons -->
+  <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&family=Noto+Sans+TC:wght@400;500;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  
   <style>
     :root {
-      --primary: #2b5876;
-      --secondary: #4e4376;
-      --bg: #f4f7f6;
-      --disabled: #e0e0e0;
+      /* 馬卡龍柔和色彩主題 (Macaron Pastel Theme) */
+      --macaron-bg-gradient: linear-gradient(135deg, #FFF5F5 0%, #F0F4FF 50%, #F5FFF8 100%);
+      --macaron-pink: #FFD1DC;
+      --macaron-pink-dark: #FF9AA2;
+      --macaron-blue: #B5EAD7;
+      --macaron-blue-dark: #70D6FF;
+      --macaron-purple: #E2F0CB;
+      --macaron-yellow: #FFDAC1;
+      --macaron-accent: #6C5CE7;
+      --macaron-card-bg: rgba(255, 255, 255, 0.92);
+      
+      --text-main: #4A4A6A;
+      --text-muted: #8888A0;
+      --disabled-bg: #F0F0F5;
+      
+      --radius-large: 20px;
+      --radius-medium: 12px;
+      --shadow-soft: 0 10px 25px rgba(108, 92, 231, 0.08);
+      --shadow-hover: 0 14px 30px rgba(108, 92, 231, 0.15);
     }
+
+    * {
+      box-sizing: border-box;
+      transition: all 0.25s ease-in-out;
+    }
+
     body {
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
-      background-color: var(--bg);
+      font-family: 'Nunito', 'Noto Sans TC', -apple-system, sans-serif;
+      background: var(--macaron-bg-gradient);
+      background-attachment: fixed;
+      min-height: 100vh;
       margin: 0;
-      padding: 15px;
-      color: #333;
+      padding: 20px 15px;
+      color: var(--text-main);
     }
+
     .container {
-      max-width: 900px;
+      max-width: 920px;
       margin: 0 auto;
     }
-    h1, h2 {
+
+    /* 頁頭 Header */
+    .app-header {
       text-align: center;
-      color: var(--primary);
+      margin-bottom: 25px;
     }
+
+    .app-header h1 {
+      font-size: 2rem;
+      font-weight: 800;
+      color: var(--text-main);
+      margin: 0 0 8px 0;
+      letter-spacing: 0.5px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+    }
+
+    .app-header p {
+      margin: 0;
+      color: var(--text-muted);
+      font-size: 0.95rem;
+    }
+
+    /* 通用卡片容器 */
     .card {
-      background: white;
-      border-radius: 12px;
-      padding: 20px;
-      margin-bottom: 20px;
-      box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+      background: var(--macaron-card-bg);
+      backdrop-filter: blur(10px);
+      border-radius: var(--radius-large);
+      padding: 24px;
+      margin-bottom: 25px;
+      box-shadow: var(--shadow-soft);
+      border: 2px solid #FFFFFF;
     }
-    /* 第一區塊: 排名圖表 */
-    .chart-header {
+
+    .card-title {
       display: flex;
       justify-content: space-between;
       align-items: center;
-      border-bottom: 2px solid #eee;
-      padding-bottom: 10px;
-      margin-bottom: 15px;
+      border-bottom: 2px dashed #EAEAEA;
+      padding-bottom: 14px;
+      margin-bottom: 20px;
+      flex-wrap: wrap;
+      gap: 12px;
     }
+
+    .card-title h2 {
+      font-size: 1.35rem;
+      margin: 0;
+      color: var(--text-main);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    /* 切換按鈕組 (論文組 / 海報組) - 字體放大 20% */
+    .tab-group {
+      display: flex;
+      background: #F0F2F8;
+      padding: 4px;
+      border-radius: 14px;
+      gap: 4px;
+    }
+
+    .tab-btn {
+      border: none;
+      background: transparent;
+      padding: 8px 18px;
+      border-radius: 10px;
+      font-size: 1.2rem; /* 字體放大 20% (由原先 1.0rem 提升至 1.2rem) */
+      font-weight: 700;
+      color: var(--text-muted);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .tab-btn.active {
+      background: #FFFFFF;
+      color: var(--macaron-accent);
+      box-shadow: 0 4px 10px rgba(0,0,0,0.06);
+    }
+
+    /* 長條圖 ranking */
+    .ranking-container {
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+    }
+
     .bar-item {
       display: flex;
       align-items: center;
-      margin-bottom: 10px;
+      gap: 12px;
     }
-    .bar-label {
-      width: 140px;
-      font-size: 0.9em;
+
+    .bar-rank {
+      font-weight: 800;
+      font-size: 1.1rem;
+      width: 32px;
+      height: 32px;
+      background: var(--macaron-yellow);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #6A4C11;
+      flex-shrink: 0;
+    }
+
+    .bar-rank.top1 { background: #FFD700; color: #FFF; text-shadow: 0 1px 2px rgba(0,0,0,0.2); }
+    .bar-rank.top2 { background: #E0E0E0; color: #FFF; text-shadow: 0 1px 2px rgba(0,0,0,0.2); }
+    .bar-rank.top3 { background: #E6A15C; color: #FFF; text-shadow: 0 1px 2px rgba(0,0,0,0.2); }
+
+    .bar-info {
+      width: 180px;
+      font-size: 0.92rem;
+      font-weight: 600;
       white-space: nowrap;
       overflow: hidden;
       text-overflow: ellipsis;
+      flex-shrink: 0;
     }
+
     .bar-track {
       flex: 1;
-      background-color: #e9ecef;
-      height: 22px;
-      border-radius: 11px;
+      background: #F0F2F8;
+      height: 24px;
+      border-radius: 12px;
       overflow: hidden;
-      margin: 0 10px;
       position: relative;
     }
+
     .bar-fill {
       height: 100%;
-      background: linear-gradient(90deg, #4e4376, #2b5876);
-      border-radius: 11px;
-      transition: width 0.5s ease;
+      background: linear-gradient(90deg, var(--macaron-pink-dark) 0%, var(--macaron-blue-dark) 100%);
+      border-radius: 12px;
+      width: 0%;
     }
+
     .bar-score {
-      width: 45px;
-      font-weight: bold;
+      min-width: 110px;
       text-align: right;
+      font-weight: 800;
+      font-size: 1.05rem;
+      color: var(--macaron-accent);
+      flex-shrink: 0;
     }
-    .toggle-btn {
-      display: block;
+
+    .score-unit {
+      font-size: 0.75rem;
+      color: var(--text-muted);
+      font-weight: 400;
+    }
+
+    /* 展開按鈕 */
+    .toggle-expand-btn {
       width: 100%;
-      padding: 8px;
-      background: none;
-      border: 1px solid var(--primary);
-      color: var(--primary);
-      border-radius: 6px;
-      cursor: pointer;
-      margin-top: 10px;
-      font-weight: bold;
-    }
-    /* 第二區塊: 評審作業 */
-    .form-group {
-      margin-bottom: 15px;
-    }
-    label {
-      display: block;
-      margin-bottom: 5px;
-      font-weight: bold;
-    }
-    select {
-      width: 100%;
+      margin-top: 18px;
       padding: 10px;
-      border-radius: 6px;
-      border: 1px solid #ccc;
-      font-size: 1em;
+      border: 2px dashed #D0D5EE;
+      background: #FAFAFE;
+      color: var(--macaron-accent);
+      border-radius: var(--radius-medium);
+      font-weight: 700;
+      font-size: 0.95rem;
+      cursor: pointer;
     }
-    .paper-card {
-      border: 1px solid #e0e0e0;
-      border-radius: 8px;
-      padding: 15px;
-      margin-bottom: 12px;
-      background: #fff;
+
+    .toggle-expand-btn:hover {
+      background: #F0F2FF;
+      border-color: var(--macaron-accent);
+    }
+
+    /* 表單區塊 Form Elements */
+    .form-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 15px;
+      margin-bottom: 20px;
+    }
+
+    @media (max-width: 600px) {
+      .form-grid {
+        grid-template-columns: 1fr;
+      }
+      .bar-info {
+        width: 120px;
+      }
+    }
+
+    .form-group label {
+      display: block;
+      font-weight: 700;
+      font-size: 0.9rem;
+      margin-bottom: 8px;
+      color: var(--text-main);
+    }
+
+    .form-group select {
+      width: 100%;
+      padding: 12px 16px;
+      border-radius: var(--radius-medium);
+      border: 2px solid #E2E8F0;
+      background: #FFFFFF;
+      font-size: 0.95rem;
+      color: var(--text-main);
+      font-weight: 600;
+      outline: none;
+    }
+
+    .form-group select:focus {
+      border-color: var(--macaron-blue-dark);
+      box-shadow: 0 0 0 3px rgba(112, 214, 255, 0.25);
+    }
+
+    /* 論文卡片列表 */
+    .manuscript-card {
+      background: #FFFFFF;
+      border-radius: 16px;
+      padding: 18px;
+      margin-bottom: 14px;
+      border: 1px solid #EAEAEA;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.03);
       display: flex;
       flex-direction: column;
-      gap: 8px;
+      gap: 10px;
+      position: relative;
     }
-    .paper-card.avoided {
-      background: var(--disabled);
-      opacity: 0.7;
+
+    .manuscript-card.avoided {
+      background: var(--disabled-bg);
+      border-color: #E2E2E8;
     }
-    .paper-header {
+
+    .manuscript-header {
       display: flex;
       justify-content: space-between;
+      align-items: flex-start;
+      gap: 10px;
+    }
+
+    .manuscript-title {
+      font-weight: 700;
+      font-size: 1.05rem;
+      color: var(--text-main);
+      line-height: 1.4;
+    }
+
+    .badge {
+      display: inline-flex;
       align-items: center;
+      gap: 4px;
+      padding: 4px 10px;
+      border-radius: 20px;
+      font-size: 0.78rem;
+      font-weight: 700;
+      white-space: nowrap;
     }
-    .paper-title {
-      font-weight: bold;
-      font-size: 1.05em;
+
+    .badge-category { background: var(--macaron-yellow); color: #8A5A00; }
+    .badge-avoid { background: #FF6B6B; color: #FFFFFF; }
+
+    .manuscript-meta {
+      font-size: 0.85rem;
+      color: var(--text-muted);
+      display: flex;
+      gap: 15px;
+      flex-wrap: wrap;
     }
-    .paper-meta {
-      font-size: 0.85em;
-      color: #666;
-    }
-    .action-row {
+
+    .manuscript-actions {
       display: flex;
       justify-content: space-between;
       align-items: center;
       margin-top: 5px;
+      padding-top: 10px;
+      border-top: 1px dashed #F0F0F0;
+      flex-wrap: wrap;
+      gap: 10px;
     }
+
     .btn-download {
-      background-color: #28a745;
-      color: white;
-      border: none;
-      padding: 6px 12px;
-      border-radius: 4px;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 8px 14px;
+      background: var(--macaron-blue);
+      color: #1A5E42;
+      border-radius: 10px;
       text-decoration: none;
-      font-size: 0.9em;
+      font-size: 0.88rem;
+      font-weight: 700;
     }
+
+    .btn-download:hover {
+      background: #9EE0C8;
+      transform: translateY(-2px);
+    }
+
+    .score-picker {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .score-picker label {
+      font-size: 0.88rem;
+      font-weight: 700;
+      margin: 0;
+    }
+
     .score-select {
-      width: 120px;
+      padding: 8px 12px;
+      border-radius: 10px;
+      border: 2px solid #E2E8F0;
+      font-size: 0.95rem;
+      font-weight: 700;
+      color: var(--macaron-accent);
+      background: #FFF;
+      cursor: pointer;
     }
+
+    .score-select:disabled {
+      background: #EAEAEA;
+      color: #999;
+      cursor: not-allowed;
+    }
+
+    /* 儲存按鈕 */
     .btn-save {
       width: 100%;
-      padding: 14px;
-      background-color: var(--primary);
-      color: white;
+      padding: 16px;
+      background: linear-gradient(135deg, #FF9AA2 0%, #6C5CE7 100%);
+      color: #FFFFFF;
       border: none;
-      border-radius: 8px;
-      font-size: 1.1em;
-      font-weight: bold;
+      border-radius: 16px;
+      font-size: 1.1rem;
+      font-weight: 800;
       cursor: pointer;
-      margin-top: 15px;
+      box-shadow: 0 8px 20px rgba(108, 92, 231, 0.25);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      margin-top: 20px;
     }
+
+    .btn-save:hover:not(:disabled) {
+      transform: translateY(-2px);
+      box-shadow: 0 12px 25px rgba(108, 92, 231, 0.35);
+    }
+
     .btn-save:disabled {
-      background-color: #ccc;
+      background: #CCCCCC;
+      box-shadow: none;
+      cursor: not-allowed;
     }
-    .badge {
-      display: inline-block;
-      padding: 2px 8px;
-      border-radius: 4px;
-      font-size: 0.8em;
-      color: white;
-      background: #6c757d;
+
+    /* 載入動畫 */
+    .loading-spinner {
+      text-align: center;
+      padding: 30px;
+      color: var(--text-muted);
+      font-size: 1.1rem;
     }
-    .badge-avoid {
-      background: #dc3545;
+
+    /* 提示訊息 Toast */
+    .toast {
+      position: fixed;
+      bottom: 20px;
+      left: 50%;
+      transform: translateX(-50%) translateY(100px);
+      background: #333;
+      color: #fff;
+      padding: 12px 24px;
+      border-radius: 30px;
+      font-weight: 600;
+      box-shadow: 0 10px 20px rgba(0,0,0,0.2);
+      opacity: 0;
+      z-index: 1000;
+    }
+
+    .toast.show {
+      transform: translateX(-50%) translateY(0);
+      opacity: 1;
     }
   </style>
 </head>
 <body>
 
 <div class="container">
-  <h1>(動力系)ND35研討會論文審查系統</h1>
+  
+  <!-- 頁頭 -->
+  <header class="app-header">
+    <h1><i class="fa-solid fa-award" style="color: #FF9AA2;"></i> (動力系)ND35研討會論文審查系統</h1>
+    <p>線上即時評分與平均分數排名統計</p>
+  </header>
 
-  <!-- 第一區塊：即時總分排名 -->
+  <!-- 第一區塊：即時平均分數排名 -->
   <div class="card">
-    <div class="chart-header">
-      <h2>🏆 即時總分排名</h2>
-      <div>
-        <button onclick="switchTab('論文')" id="tab-paper" style="font-weight:bold;">論文組</button>
-        <button onclick="switchTab('海報')" id="tab-poster">海報組</button>
+    <div class="card-title">
+      <h2><i class="fa-solid fa-chart-simple" style="color: #70D6FF;"></i> 即時平均分數排名</h2>
+      <div class="tab-group">
+        <button class="tab-btn active" id="tab-paper" onclick="switchTab('論文')">
+          <i class="fa-solid fa-file-lines"></i> 論文組
+        </button>
+        <button class="tab-btn" id="tab-poster" onclick="switchTab('海報')">
+          <i class="fa-solid fa-image"></i> 海報組
+        </button>
       </div>
     </div>
-    <div id="ranking-list">讀取中...</div>
-    <button class="toggle-btn" id="btn-toggle-expand" onclick="toggleExpand()">展開看全部</button>
+
+    <div id="ranking-list" class="ranking-container">
+      <div class="loading-spinner"><i class="fa-solid fa-spinner fa-spin"></i> 載入最新排名資料中...</div>
+    </div>
+
+    <button class="toggle-expand-btn" id="btn-toggle-expand" onclick="toggleExpand()">
+      <i class="fa-solid fa-angle-down"></i> 展開看全部稿件
+    </button>
   </div>
 
-  <!-- 第二區塊：評審作業 -->
+  <!-- 第二區塊：評審審查作業 -->
   <div class="card">
-    <h2>✍️ 評審審查作業</h2>
-    
-    <div class="form-group">
-      <label for="group-select">1. 選擇組別：</label>
-      <select id="group-select" onchange="onGroupChange()">
-        <option value="">-- 請選擇組別 --</option>
-      </select>
+    <div class="card-title">
+      <h2><i class="fa-solid fa-pen-to-square" style="color: #FFB7B2;"></i> 評審線上審查區</h2>
     </div>
 
-    <div class="form-group">
-      <label for="reviewer-select">2. 選擇審查人姓名：</label>
-      <select id="reviewer-select" onchange="onReviewerChange()" disabled>
-        <option value="">-- 請先選擇組別 --</option>
-      </select>
+    <div class="form-grid">
+      <div class="form-group">
+        <label for="group-select"><i class="fa-solid fa-users"></i> 1. 選擇組別：</label>
+        <select id="group-select" onchange="onGroupChange()">
+          <option value="">-- 請選擇組別 --</option>
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label for="reviewer-select"><i class="fa-solid fa-user-check"></i> 2. 選擇審查人姓名：</label>
+        <select id="reviewer-select" onchange="onReviewerChange()" disabled>
+          <option value="">-- 請先選擇組別 --</option>
+        </select>
+      </div>
     </div>
 
+    <!-- 稿件列表與評分 -->
     <div id="manuscript-section" style="display:none;">
-      <h3>審查稿件清單</h3>
+      <div style="margin-bottom: 15px; font-weight: 700; color: var(--text-muted); font-size: 0.9rem;">
+        請點選給予 1 ~ 10 分評分，完成後請點擊最下方「儲存評分」按鈕：
+      </div>
       <div id="manuscript-list"></div>
-      <button class="btn-save" id="btn-save" onclick="saveScores()">儲存評分</button>
+
+      <button class="btn-save" id="btn-save" onclick="saveScores()">
+        <i class="fa-solid fa-cloud-arrow-up"></i> 儲存評分並更新
+      </button>
     </div>
   </div>
+
 </div>
 
+<!-- Toast 通知區域 -->
+<div id="toast" class="toast"></div>
+
 <script>
-  // **請填入您部署的 GAS Web App 網址**
-  const API_URL = "https://script.google.com/macros/s/AKfycbxxA3DKJYI9rkKPexqzEB1gIlXrlBvC4_nT1CTrxS6oeGBsl_RF6LgAx5Ch1uBE0Zk/exec"; 
+  // 指定的 API Web App URL
+  const API_URL = "https://script.google.com/macros/s/AKfycbxxA3DKJYI9rkKPexqzEB1gIlXrlBvC4_nT1CTrxS6oeGBsl_RF6LgAx5Ch1uBE0Zk/exec";
   
-  // 論文檔案路徑資料夾 (預設於 GitHub 專案內的 papers/ 目錄)
+  // GitHub 專案內的論文下載相對資料夾
   const PAPER_FOLDER_URL = "papers/"; 
 
   let appData = { manuscripts: [], reviewers: [] };
-  let currentTab = '論文'; // 預設顯示論文組排名
-  let isExpanded = false;
+  let currentTab = '論文'; // 預設類別
+  let isExpanded = false;  // 預設僅顯示前 6 名
 
-  // 初始化讀取資料
   window.onload = function() {
     loadData();
   };
 
+  // 讀取資料
   function loadData() {
     fetch(API_URL)
       .then(res => res.json())
       .then(data => {
         appData = data;
+        calculateAverageScores(); // 計算每篇稿件的平均分數與評分人數
         renderRankings();
         setupGroupDropdown();
       })
-      .catch(err => alert("資料載入失敗，請確認 API 網址設定：" + err));
+      .catch(err => {
+        showToast("資料讀取失敗，請確認網路連線！");
+        console.error(err);
+      });
   }
 
-  // --- 第一區塊：排名邏輯 ---
+  // 動態計算每篇稿件的「平均分數」與「評分人數」
+  function calculateAverageScores() {
+    if (!appData.manuscripts || !appData.reviewers) return;
+
+    appData.manuscripts.forEach(m => {
+      let total = 0;
+      let count = 0;
+
+      appData.reviewers.forEach(r => {
+        // 若該審查人未迴避且已有評分，計算進入平均
+        if (!r.avoidList.includes(m.id) && r.scores && r.scores[m.id] !== null && r.scores[m.id] !== undefined && r.scores[m.id] !== "") {
+          const score = Number(r.scores[m.id]);
+          if (!isNaN(score)) {
+            total += score;
+            count++;
+          }
+        }
+      });
+
+      m.reviewCount = count;
+      m.avgScore = count > 0 ? (total / count) : 0;
+    });
+  }
+
+  // 切換 論文組 / 海報組
   function switchTab(type) {
     currentTab = type;
+    document.getElementById('tab-paper').classList.toggle('active', type === '論文');
+    document.getElementById('tab-poster').classList.toggle('active', type === '海報');
     renderRankings();
   }
 
+  // 切換 展開 / 收合
   function toggleExpand() {
     isExpanded = !isExpanded;
-    document.getElementById('btn-toggle-expand').innerText = isExpanded ? "收合前6名" : "展開看全部";
+    const btn = document.getElementById('btn-toggle-expand');
+    btn.innerHTML = isExpanded 
+      ? '<i class="fa-solid fa-angle-up"></i> 收合僅顯示前 6 名' 
+      : '<i class="fa-solid fa-angle-down"></i> 展開看全部稿件';
     renderRankings();
   }
 
+  // 渲染第一區塊：平均分數即時排名
   function renderRankings() {
-    const listContainer = document.getElementById('ranking-list');
+    const container = document.getElementById('ranking-list');
     
-    // 篩選與排序
+    // 依據組別篩選
     let list = appData.manuscripts.filter(m => m.type === currentTab);
-    list.sort((a, b) => b.totalScore - a.totalScore);
 
-    const maxScore = list.length > 0 ? Math.max(...list.map(m => m.totalScore), 1) : 1;
+    // 依「平均分數 (avgScore)」由高至低排序
+    list.sort((a, b) => b.avgScore - a.avgScore);
+
+    if (list.length === 0) {
+      container.innerHTML = `<div class="loading-spinner">目前尚無${currentTab}資料</div>`;
+      return;
+    }
+
     const displayList = isExpanded ? list : list.slice(0, 6);
-
     let html = "";
+
     displayList.forEach((item, index) => {
-      const percentage = Math.min(100, (item.totalScore / maxScore) * 100);
+      // 假設最高滿分為 10 分計算長條圖比例
+      const percentage = Math.min(100, (item.avgScore / 10) * 100);
+      
+      let rankClass = "";
+      if (index === 0) rankClass = "top1";
+      else if (index === 1) rankClass = "top2";
+      else if (index === 2) rankClass = "top3";
+
       html += `
         <div class="bar-item">
-          <div class="bar-label" title="${item.id} ${item.title}">
-            <strong>#${index + 1} [${item.id}]</strong> ${item.title}
+          <div class="bar-rank ${rankClass}">${index + 1}</div>
+          <div class="bar-info" title="[${item.id}] ${item.title}">
+            <strong>[${item.id}]</strong> ${item.title}
           </div>
           <div class="bar-track">
             <div class="bar-fill" style="width: ${percentage}%;"></div>
           </div>
-          <div class="bar-score">${item.totalScore} 分</div>
+          <div class="bar-score">
+            ${item.avgScore.toFixed(2)} <span class="score-unit">分 (${item.reviewCount}人評分)</span>
+          </div>
         </div>
       `;
     });
 
-    listContainer.innerHTML = html || "<p>暫無資料</p>";
+    container.innerHTML = html;
   }
 
-  // --- 第二區塊：評審作業邏輯 ---
+  // 設定組別下拉選單
   function setupGroupDropdown() {
     const groupSelect = document.getElementById('group-select');
     const groups = [...new Set(appData.reviewers.map(r => r.group))];
     
+    const currentGroupVal = groupSelect.value;
     groupSelect.innerHTML = '<option value="">-- 請選擇組別 --</option>';
     groups.forEach(g => {
       groupSelect.innerHTML += `<option value="${g}">${g}</option>`;
     });
+
+    if (currentGroupVal) {
+      groupSelect.value = currentGroupVal;
+      onGroupChange();
+    }
   }
 
+  // 當組別改變時
   function onGroupChange() {
     const group = document.getElementById('group-select').value;
     const reviewerSelect = document.getElementById('reviewer-select');
@@ -318,6 +671,7 @@
     document.getElementById('manuscript-section').style.display = 'none';
   }
 
+  // 當選擇審查人時
   function onReviewerChange() {
     const name = document.getElementById('reviewer-select').value;
     if (!name) {
@@ -327,6 +681,7 @@
     renderManuscriptsForReviewer(name);
   }
 
+  // 渲染審查人對應可審稿件
   function renderManuscriptsForReviewer(reviewerName) {
     const reviewer = appData.reviewers.find(r => r.name === reviewerName);
     const container = document.getElementById('manuscript-list');
@@ -336,24 +691,31 @@
       const isAvoided = reviewer.avoidList.includes(m.id);
       const previousScore = reviewer.scores[m.id];
 
-      let options = '<option value="">請評分</option>';
+      let options = '<option value="">未評分</option>';
       for (let i = 1; i <= 10; i++) {
         const selected = (previousScore === i) ? 'selected' : '';
         options += `<option value="${i}" ${selected}>${i} 分</option>`;
       }
 
       const card = document.createElement('div');
-      card.className = `paper-card ${isAvoided ? 'avoided' : ''}`;
+      card.className = `manuscript-card ${isAvoided ? 'avoided' : ''}`;
       card.innerHTML = `
-        <div class="paper-header">
-          <span class="paper-title">[${m.id}] ${m.title}</span>
-          ${isAvoided ? '<span class="badge badge-avoid">迴避審查</span>' : `<span class="badge">${m.type}</span>`}
+        <div class="manuscript-header">
+          <div class="manuscript-title">[${m.id}] ${m.title}</div>
+          ${isAvoided 
+            ? '<span class="badge badge-avoid"><i class="fa-solid fa-ban"></i> 迴避審查</span>' 
+            : `<span class="badge badge-category"><i class="fa-solid fa-tag"></i> ${m.type} / ${m.category}</span>`}
         </div>
-        <div class="paper-meta">單位：${m.unit} | 作者：${m.authors}</div>
-        <div class="action-row">
-          <a href="${PAPER_FOLDER_URL}${m.id}.pdf" target="_blank" class="btn-download">📄 下載稿件</a>
-          <div>
-            <label style="display:inline; margin-right:5px;">評分：</label>
+        <div class="manuscript-meta">
+          <span><i class="fa-solid fa-building"></i> ${m.unit}</span>
+          <span><i class="fa-solid fa-users"></i> ${m.authors}</span>
+        </div>
+        <div class="manuscript-actions">
+          <a href="${PAPER_FOLDER_URL}${m.id}.pdf" target="_blank" class="btn-download">
+            <i class="fa-solid fa-file-pdf"></i> 下載稿件
+          </a>
+          <div class="score-picker">
+            <label>給予評分：</label>
             <select class="score-select" data-paper-id="${m.id}" ${isAvoided ? 'disabled' : ''}>
               ${isAvoided ? '<option value="">無法評分</option>' : options}
             </select>
@@ -382,7 +744,7 @@
 
     const btnSave = document.getElementById('btn-save');
     btnSave.disabled = true;
-    btnSave.innerText = "儲存中...";
+    btnSave.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> 儲存中，請稍候...';
 
     fetch(API_URL, {
       method: 'POST',
@@ -394,17 +756,30 @@
     .then(res => res.json())
     .then(res => {
       if (res.status === 'success') {
-        alert("評分儲存成功！");
-        loadData(); // 重新載入最新資料與排名
+        showToast("評分儲存成功！已更新即時平均分數排名。");
+        loadData(); // 重新載入最新資料
       } else {
-        alert("儲存失敗：" + res.message);
+        showToast("儲存失敗：" + res.message);
       }
     })
-    .catch(err => alert("網路錯誤，儲存失敗：" + err))
+    .catch(err => {
+      showToast("儲存失敗，請檢查網路連線。");
+      console.error(err);
+    })
     .finally(() => {
       btnSave.disabled = false;
-      btnSave.innerText = "儲存評分";
+      btnSave.innerHTML = '<i class="fa-solid fa-cloud-arrow-up"></i> 儲存評分並更新';
     });
+  }
+
+  // Toast 提示
+  function showToast(message) {
+    const toast = document.getElementById('toast');
+    toast.innerText = message;
+    toast.classList.add('show');
+    setTimeout(() => {
+      toast.classList.remove('show');
+    }, 3000);
   }
 </script>
 
